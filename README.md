@@ -1,6 +1,6 @@
 # Bookify
 
-App Android para gestionar y descubrir libros.
+App Android para gestionar reservas.
 
 ## Stack
 
