@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKeys
+import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,15 +29,23 @@ class TokenManager @Inject constructor(
     }
 
     private val encryptedPrefs by lazy {
-        val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-        EncryptedSharedPreferences.create(
-            "bookify_secure_prefs",
-            masterKeyAlias,
-            context,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+        try {
+            createEncryptedPrefs()
+        } catch (_: Exception) {
+            context.deleteSharedPreferences("bookify_secure_prefs")
+            createEncryptedPrefs()
+        }
     }
+
+    private fun createEncryptedPrefs() = EncryptedSharedPreferences.create(
+        context,
+        "bookify_secure_prefs",
+        MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build(),
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
 
     suspend fun saveTokens(accessToken: String, refreshToken: String) {
         encryptedPrefs.edit {
