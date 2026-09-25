@@ -1,13 +1,13 @@
 package com.cavies.bookify.core.data.di
 
 import com.cavies.bookify.core.data.local.TokenManager
-import com.cavies.bookify.core.data.repository.AuthRepository
 import com.cavies.bookify.core.data.repository.AuthRepositoryImpl
-import com.cavies.bookify.core.data.repository.BookingRepository
 import com.cavies.bookify.core.data.repository.BookingRepositoryImpl
-import com.cavies.bookify.core.data.repository.ServiceRepository
 import com.cavies.bookify.core.data.repository.ServiceRepositoryImpl
-import com.cavies.bookify.core.network.interceptor.TokenProvider
+import com.cavies.bookify.core.domain.repository.AuthRepository
+import com.cavies.bookify.core.domain.repository.BookingRepository
+import com.cavies.bookify.core.domain.repository.ServiceRepository
+import com.cavies.bookify.core.domain.repository.TokenProvider
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

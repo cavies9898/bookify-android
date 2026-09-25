@@ -2,8 +2,8 @@ package com.cavies.bookify.ui.screen.client.bookinglist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cavies.bookify.core.data.repository.BookingRepository
-import com.cavies.bookify.core.data.repository.ServiceRepository
+import com.cavies.bookify.core.domain.usecase.GetBookingsUseCase
+import com.cavies.bookify.core.domain.usecase.GetServiceNamesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,8 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BookingListViewModel @Inject constructor(
-    private val bookingRepository: BookingRepository,
-    private val serviceRepository: ServiceRepository
+    private val getBookingsUseCase: GetBookingsUseCase,
+    private val getServiceNamesUseCase: GetServiceNamesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BookingListUiState())
@@ -35,7 +35,7 @@ class BookingListViewModel @Inject constructor(
     fun loadBookings() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            bookingRepository.getBookings(page = 0, status = currentFilter)
+            getBookingsUseCase(page = 0, status = currentFilter)
                 .onSuccess { paginated ->
                     _uiState.update { it.copy(bookings = paginated.content, isLoading = false) }
                 }
@@ -46,7 +46,7 @@ class BookingListViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true) }
-            bookingRepository.getBookings(page = 0, status = currentFilter)
+            getBookingsUseCase(page = 0, status = currentFilter)
                 .onSuccess { paginated ->
                     _uiState.update { it.copy(bookings = paginated.content, isRefreshing = false) }
                 }
@@ -56,9 +56,9 @@ class BookingListViewModel @Inject constructor(
 
     private fun loadServiceNames() {
         viewModelScope.launch {
-            serviceRepository.getServices(page = 0, size = 100)
-                .onSuccess { paginated ->
-                    _uiState.update { it.copy(serviceNames = paginated.content.associate { s -> s.id to s.name }) }
+            getServiceNamesUseCase()
+                .onSuccess { names ->
+                    _uiState.update { it.copy(serviceNames = names) }
                 }
         }
     }

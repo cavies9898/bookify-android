@@ -3,6 +3,8 @@ package com.cavies.bookify.core.data.repository
 import com.cavies.bookify.core.domain.model.PaginatedResponse
 import com.cavies.bookify.core.domain.model.Service
 import com.cavies.bookify.core.domain.model.AvailabilitySlot
+import com.cavies.bookify.core.domain.repository.CreateServiceParams
+import com.cavies.bookify.core.domain.repository.ServiceRepository
 import com.cavies.bookify.core.network.api.ApiService
 import com.cavies.bookify.core.network.dto.CreateServiceRequest
 import com.cavies.bookify.core.network.dto.toDomain
@@ -39,8 +41,20 @@ class ServiceRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createService(request: CreateServiceRequest): Result<Service> {
+    override suspend fun createService(params: CreateServiceParams): Result<Service> {
         return try {
+            val request = CreateServiceRequest(
+                name = params.name,
+                description = params.description.orEmpty(),
+                durationMinutes = params.durationMinutes,
+                capacity = params.capacity,
+                price = params.price,
+                openingTime = params.openingTime.orEmpty(),
+                closingTime = params.closingTime.orEmpty(),
+                location = params.location,
+                latitude = params.latitude,
+                longitude = params.longitude
+            )
             val response = api.createService(request)
             Result.success(response.toDomain())
         } catch (e: retrofit2.HttpException) {
@@ -50,8 +64,20 @@ class ServiceRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateService(id: Long, request: CreateServiceRequest): Result<Service> {
+    override suspend fun updateService(id: Long, request: CreateServiceParams): Result<Service> {
         return try {
+            val request = CreateServiceRequest(
+                name = request.name,
+                description = request.description.orEmpty(),
+                durationMinutes = request.durationMinutes,
+                capacity = request.capacity,
+                price = request.price,
+                openingTime = request.openingTime.orEmpty(),
+                closingTime = request.closingTime.orEmpty(),
+                location = request.location,
+                latitude = request.latitude,
+                longitude = request.longitude
+            )
             val response = api.updateService(id, request)
             Result.success(response.toDomain())
         } catch (e: retrofit2.HttpException) {

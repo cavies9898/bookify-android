@@ -2,7 +2,7 @@ package com.cavies.bookify.ui.screen.client.servicelist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cavies.bookify.core.data.repository.ServiceRepository
+import com.cavies.bookify.core.domain.usecase.GetServicesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ClientServiceListViewModel @Inject constructor(
-    private val serviceRepository: ServiceRepository
+    private val getServicesUseCase: GetServicesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ClientServiceListUiState())
@@ -27,7 +27,7 @@ class ClientServiceListViewModel @Inject constructor(
     fun loadServices() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            serviceRepository.getServices(page = 0)
+            getServicesUseCase(page = 0)
                 .onSuccess { paginated ->
                     currentPage = 0
                     _uiState.update {
@@ -51,7 +51,7 @@ class ClientServiceListViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true, error = null) }
-            serviceRepository.getServices(page = 0)
+            getServicesUseCase(page = 0)
                 .onSuccess { paginated ->
                     currentPage = 0
                     _uiState.update {
@@ -78,7 +78,7 @@ class ClientServiceListViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val nextPage = currentPage + 1
-            serviceRepository.getServices(page = nextPage)
+            getServicesUseCase(page = nextPage)
                 .onSuccess { paginated ->
                     currentPage = nextPage
                     _uiState.update {

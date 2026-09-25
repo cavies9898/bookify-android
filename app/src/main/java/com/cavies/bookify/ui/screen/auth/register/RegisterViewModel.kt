@@ -2,7 +2,7 @@ package com.cavies.bookify.ui.screen.auth.register
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cavies.bookify.core.data.repository.AuthRepository
+import com.cavies.bookify.core.domain.usecase.RegisterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val registerUseCase: RegisterUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegisterUiState())
@@ -21,7 +21,7 @@ class RegisterViewModel @Inject constructor(
     fun register(name: String, email: String, password: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            authRepository.register(name, email, password)
+            registerUseCase(name, email, password)
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false) }
                     onSuccess()

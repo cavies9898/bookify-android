@@ -2,7 +2,7 @@ package com.cavies.bookify.ui.screen.client.availability
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cavies.bookify.core.data.repository.ServiceRepository
+import com.cavies.bookify.core.domain.usecase.GetServiceAvailabilityUseCase
 import com.cavies.bookify.core.domain.util.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AvailabilityViewModel @Inject constructor(
-    private val serviceRepository: ServiceRepository
+    private val getServiceAvailabilityUseCase: GetServiceAvailabilityUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AvailabilityUiState())
@@ -25,7 +25,7 @@ class AvailabilityViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             val dateStr = DateUtils.toQueryString(date)
-            serviceRepository.getServiceAvailability(serviceId, dateStr)
+            getServiceAvailabilityUseCase(serviceId, dateStr)
                 .onSuccess {
                     _uiState.update { state -> state.copy(slots = it, isLoading = false, error = null) }
                 }

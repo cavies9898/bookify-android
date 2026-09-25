@@ -2,8 +2,8 @@ package com.cavies.bookify.ui.screen.auth.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cavies.bookify.core.data.repository.AuthRepository
 import com.cavies.bookify.core.domain.model.UserRole
+import com.cavies.bookify.core.domain.usecase.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val loginUseCase: LoginUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -26,7 +26,7 @@ class LoginViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            authRepository.login(email, password)
+            loginUseCase(email, password)
                 .onSuccess { response ->
                     _uiState.update { it.copy(isLoading = false) }
                     val role = response.user?.role ?: UserRole.CLIENTE

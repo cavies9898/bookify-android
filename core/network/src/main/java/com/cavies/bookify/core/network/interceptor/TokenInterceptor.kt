@@ -1,5 +1,6 @@
 package com.cavies.bookify.core.network.interceptor
 
+import com.cavies.bookify.core.domain.repository.TokenProvider
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response

@@ -1,5 +1,6 @@
 package com.cavies.bookify.core.network.interceptor
 
+import com.cavies.bookify.core.domain.repository.TokenProvider
 import com.cavies.bookify.core.network.dto.RefreshTokenRequest
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -11,13 +12,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import javax.inject.Inject
 import javax.inject.Singleton
-
-interface TokenProvider {
-    suspend fun getAccessToken(): String?
-    suspend fun getRefreshToken(): String?
-    suspend fun saveTokens(accessToken: String, refreshToken: String)
-    suspend fun clearTokens()
-}
 
 @Singleton
 class AuthInterceptor @Inject constructor(

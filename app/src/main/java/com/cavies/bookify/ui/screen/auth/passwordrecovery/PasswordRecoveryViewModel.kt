@@ -2,7 +2,8 @@ package com.cavies.bookify.ui.screen.auth.passwordrecovery
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cavies.bookify.core.data.repository.AuthRepository
+import com.cavies.bookify.core.domain.usecase.ForgotPasswordUseCase
+import com.cavies.bookify.core.domain.usecase.ResetPasswordUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PasswordRecoveryViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val forgotPasswordUseCase: ForgotPasswordUseCase,
+    private val resetPasswordUseCase: ResetPasswordUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PasswordRecoveryUiState())
@@ -21,7 +23,7 @@ class PasswordRecoveryViewModel @Inject constructor(
     fun forgotPassword(email: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            authRepository.forgotPassword(email)
+            forgotPasswordUseCase(email)
                 .onSuccess { message ->
                     _uiState.update {
                         it.copy(
@@ -41,7 +43,7 @@ class PasswordRecoveryViewModel @Inject constructor(
     fun resetPassword(token: String, newPassword: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            authRepository.resetPassword(token, newPassword)
+            resetPasswordUseCase(token, newPassword)
                 .onSuccess { message ->
                     _uiState.update {
                         it.copy(

@@ -2,8 +2,8 @@ package com.cavies.bookify.ui.screen.client.createbooking
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cavies.bookify.core.data.local.TokenManager
-import com.cavies.bookify.core.data.repository.BookingRepository
+import com.cavies.bookify.core.domain.repository.TokenProvider
+import com.cavies.bookify.core.domain.usecase.CreateBookingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,8 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateBookingViewModel @Inject constructor(
-    private val bookingRepository: BookingRepository,
-    private val tokenManager: TokenManager
+    private val createBookingUseCase: CreateBookingUseCase,
+    private val tokenProvider: TokenProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateBookingUiState())
@@ -22,7 +22,7 @@ class CreateBookingViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _uiState.update { it.copy(userEmail = tokenManager.getUserEmail()) }
+            _uiState.update { it.copy(userEmail = tokenProvider.getAccessToken()?.let { "" } ?: "") }
         }
     }
 
@@ -34,7 +34,7 @@ class CreateBookingViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            bookingRepository.createBooking(serviceId, startAt, endAt)
+            createBookingUseCase(serviceId, startAt, endAt)
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false) }
                     onSuccess()

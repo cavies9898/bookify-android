@@ -2,7 +2,7 @@ package com.cavies.bookify.ui.screen.auth.resetpassword
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cavies.bookify.core.data.repository.AuthRepository
+import com.cavies.bookify.core.domain.usecase.ResetPasswordUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ResetPasswordViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val resetPasswordUseCase: ResetPasswordUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ResetPasswordUiState())
@@ -21,7 +21,7 @@ class ResetPasswordViewModel @Inject constructor(
     fun resetPassword(token: String, newPassword: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            authRepository.resetPassword(token, newPassword)
+            resetPasswordUseCase(token, newPassword)
                 .onSuccess { message ->
                     _uiState.update {
                         it.copy(

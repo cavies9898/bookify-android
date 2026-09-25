@@ -29,7 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.cavies.bookify.core.data.local.TokenManager
+import com.cavies.bookify.core.domain.repository.AuthRepository
 import com.cavies.bookify.ui.screen.admin.home.AdminHomeScreen
 import com.cavies.bookify.ui.screen.auth.login.LoginScreen
 import com.cavies.bookify.ui.screen.auth.passwordrecovery.PasswordRecoveryScreen
@@ -44,7 +44,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val tokenManager: TokenManager
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _startDestination = MutableStateFlow<String?>(null)
@@ -52,10 +52,10 @@ class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val role = tokenManager.getUserRole()
+            val user = authRepository.getCurrentUser()
             _startDestination.value = when {
-                tokenManager.isLoggedIn() && role == "ADMIN" -> "admin_tabs"
-                tokenManager.isLoggedIn() -> "client_tabs"
+                user != null && user.role.name == "ADMIN" -> "admin_tabs"
+                user != null -> "client_tabs"
                 else -> "login"
             }
         }
@@ -213,5 +213,3 @@ fun BookifyNavHost(
         }
     }
 }
-
-

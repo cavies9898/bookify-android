@@ -2,8 +2,10 @@ package com.cavies.bookify.ui.screen.admin.serviceform
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cavies.bookify.core.data.repository.ServiceRepository
-import com.cavies.bookify.core.network.dto.CreateServiceRequest
+import com.cavies.bookify.core.domain.repository.CreateServiceParams
+import com.cavies.bookify.core.domain.usecase.CreateServiceUseCase
+import com.cavies.bookify.core.domain.usecase.GetServiceByIdUseCase
+import com.cavies.bookify.core.domain.usecase.UpdateServiceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +15,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AdminServiceFormViewModel @Inject constructor(
-    private val serviceRepository: ServiceRepository
+    private val getServiceByIdUseCase: GetServiceByIdUseCase,
+    private val createServiceUseCase: CreateServiceUseCase,
+    private val updateServiceUseCase: UpdateServiceUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminServiceFormUiState())
@@ -32,9 +36,8 @@ class AdminServiceFormViewModel @Inject constructor(
 
     fun loadService(id: Long) {
         viewModelScope.launch {
-            serviceRepository.getServices(page = 0, size = 100)
-                .onSuccess { paginated ->
-                    val svc = paginated.content.find { s -> s.id == id }
+            getServiceByIdUseCase(id)
+                .onSuccess { svc ->
                     svc?.let {
                         _uiState.update { state ->
                             state.copy(
@@ -63,7 +66,7 @@ class AdminServiceFormViewModel @Inject constructor(
         viewModelScope.launch {
             val state = _uiState.value
             _uiState.update { it.copy(isLoading = true, error = null) }
-            val request = CreateServiceRequest(
+            val params = CreateServiceParams(
                 name = state.name,
                 description = state.description,
                 durationMinutes = state.durationMinutes,
@@ -76,9 +79,9 @@ class AdminServiceFormViewModel @Inject constructor(
                 longitude = state.longitude.toDoubleOrNull()
             )
             val result = if (id != null) {
-                serviceRepository.updateService(id, request)
+                updateServiceUseCase(id, params)
             } else {
-                serviceRepository.createService(request)
+                createServiceUseCase(params)
             }
             result
                 .onSuccess {

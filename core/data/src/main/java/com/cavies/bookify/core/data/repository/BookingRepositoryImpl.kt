@@ -2,6 +2,7 @@ package com.cavies.bookify.core.data.repository
 
 import com.cavies.bookify.core.domain.model.Booking
 import com.cavies.bookify.core.domain.model.PaginatedResponse
+import com.cavies.bookify.core.domain.repository.BookingRepository
 import com.cavies.bookify.core.network.api.ApiService
 import com.cavies.bookify.core.network.dto.CreateBookingRequest
 import com.cavies.bookify.core.network.dto.toDomain

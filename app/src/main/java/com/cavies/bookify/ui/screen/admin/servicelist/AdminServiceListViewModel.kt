@@ -2,7 +2,8 @@ package com.cavies.bookify.ui.screen.admin.servicelist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cavies.bookify.core.data.repository.ServiceRepository
+import com.cavies.bookify.core.domain.usecase.DeleteServiceUseCase
+import com.cavies.bookify.core.domain.usecase.GetServicesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AdminServiceListViewModel @Inject constructor(
-    private val serviceRepository: ServiceRepository
+    private val getServicesUseCase: GetServicesUseCase,
+    private val deleteServiceUseCase: DeleteServiceUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminServiceListUiState())
@@ -25,7 +27,7 @@ class AdminServiceListViewModel @Inject constructor(
     fun loadServices() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            serviceRepository.getServices(page = 0, size = 100)
+            getServicesUseCase(page = 0, size = 100)
                 .onSuccess { paginated ->
                     _uiState.update { it.copy(services = paginated.content, isLoading = false) }
                 }
@@ -35,7 +37,7 @@ class AdminServiceListViewModel @Inject constructor(
 
     fun deleteService(id: Long) {
         viewModelScope.launch {
-            serviceRepository.deleteService(id)
+            deleteServiceUseCase(id)
                 .onSuccess { loadServices() }
         }
     }

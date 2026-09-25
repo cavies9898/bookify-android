@@ -1,8 +1,10 @@
 package com.cavies.bookify.core.data.repository
 
-import android.util.Log
 import com.cavies.bookify.core.data.local.TokenManager
 import com.cavies.bookify.core.domain.model.AuthResponse
+import com.cavies.bookify.core.domain.model.User
+import com.cavies.bookify.core.domain.model.UserRole
+import com.cavies.bookify.core.domain.repository.AuthRepository
 import com.cavies.bookify.core.network.api.ApiService
 import com.cavies.bookify.core.network.dto.ForgotPasswordRequest
 import com.cavies.bookify.core.network.dto.LoginRequest
@@ -106,15 +108,13 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun isLoggedIn(): Boolean = tokenManager.isLoggedIn()
 
-    override suspend fun getCurrentUser(): com.cavies.bookify.core.domain.model.User? {
+    override suspend fun getCurrentUser(): User? {
         if (!isLoggedIn()) return null
-        return com.cavies.bookify.core.domain.model.User(
+        return User(
             id = tokenManager.getUserId(),
             name = tokenManager.getUserName(),
             email = tokenManager.getUserEmail(),
-            role = com.cavies.bookify.core.domain.model.UserRole.valueOf(
-                tokenManager.getUserRole().ifEmpty { "CLIENTE" }
-            )
+            role = UserRole.valueOf(tokenManager.getUserRole().ifEmpty { "CLIENTE" })
         )
     }
 }
