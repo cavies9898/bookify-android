@@ -1,10 +1,11 @@
 package com.cavies.bookify.core.data.repository
 
-import com.cavies.bookify.core.data.local.TokenManager
 import com.cavies.bookify.core.domain.model.AuthResponse
 import com.cavies.bookify.core.domain.model.User
 import com.cavies.bookify.core.domain.model.UserRole
 import com.cavies.bookify.core.domain.repository.AuthRepository
+import com.cavies.bookify.core.domain.repository.TokenStorage
+import com.cavies.bookify.core.data.util.ErrorMapper
 import com.cavies.bookify.core.network.api.ApiService
 import com.cavies.bookify.core.network.dto.ForgotPasswordRequest
 import com.cavies.bookify.core.network.dto.LoginRequest
@@ -16,29 +17,20 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val api: ApiService,
-    private val tokenManager: TokenManager
+    private val tokenStorage: TokenStorage
 ) : AuthRepository {
 
     override suspend fun login(email: String, password: String): Result<AuthResponse> {
         return try {
             val response = api.login(LoginRequest(email, password))
             val domain = response.toDomain()
-            tokenManager.saveTokens(domain.accessToken, domain.refreshToken)
+            tokenStorage.saveTokens(domain.accessToken, domain.refreshToken)
             domain.user?.let {
-                tokenManager.saveUser(it.id, it.name, it.email, it.role.name)
-            } ?: tokenManager.saveUser(0L, "", email, "CLIENTE")
+                tokenStorage.saveUser(it.id, it.name, it.email, it.role.name)
+            } ?: tokenStorage.saveUser(0L, "", email, "CLIENTE")
             Result.success(domain)
-        } catch (e: retrofit2.HttpException) {
-            val message = when (e.code()) {
-                401 -> "Credenciales incorrectas"
-                403 -> "No tienes permiso"
-                404 -> "Recurso no encontrado"
-                422 -> "Datos inválidos"
-                else -> "Error del servidor"
-            }
-            Result.failure(Exception(message))
-        } catch (_: Exception) {
-            Result.failure(Exception("Error del servidor"))
+        } catch (e: Exception) {
+            Result.failure(Exception(ErrorMapper.mapException(e)))
         }
     }
 
@@ -50,22 +42,13 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val response = api.register(RegisterRequest(name, email, password))
             val domain = response.toDomain()
-            tokenManager.saveTokens(domain.accessToken, domain.refreshToken)
+            tokenStorage.saveTokens(domain.accessToken, domain.refreshToken)
             domain.user?.let {
-                tokenManager.saveUser(it.id, it.name, it.email, it.role.name)
+                tokenStorage.saveUser(it.id, it.name, it.email, it.role.name)
             }
             Result.success(domain)
-        } catch (e: retrofit2.HttpException) {
-            val message = when (e.code()) {
-                401 -> "Credenciales incorrectas"
-                403 -> "No tienes permiso"
-                404 -> "Recurso no encontrado"
-                422 -> "Datos inválidos"
-                else -> "Error del servidor"
-            }
-            Result.failure(Exception(message))
-        } catch (_: Exception) {
-            Result.failure(Exception("Error del servidor"))
+        } catch (e: Exception) {
+            Result.failure(Exception(ErrorMapper.mapException(e)))
         }
     }
 
@@ -73,15 +56,8 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val response = api.forgotPassword(ForgotPasswordRequest(email))
             Result.success(response.message)
-        } catch (e: retrofit2.HttpException) {
-            val message = when (e.code()) {
-                404 -> "Email no registrado"
-                422 -> "Email inválido"
-                else -> "Error del servidor"
-            }
-            Result.failure(Exception(message))
-        } catch (_: Exception) {
-            Result.failure(Exception("Error del servidor"))
+        } catch (e: Exception) {
+            Result.failure(Exception(ErrorMapper.mapException(e)))
         }
     }
 
@@ -89,32 +65,24 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val response = api.resetPassword(ResetPasswordRequest(token, newPassword))
             Result.success(response.message)
-        } catch (e: retrofit2.HttpException) {
-            val message = when (e.code()) {
-                400 -> "Código de restablecimiento inválido"
-                404 -> "Token no encontrado"
-                422 -> "Datos inválidos"
-                else -> "Error del servidor"
-            }
-            Result.failure(Exception(message))
-        } catch (_: Exception) {
-            Result.failure(Exception("Error del servidor"))
+        } catch (e: Exception) {
+            Result.failure(Exception(ErrorMapper.mapException(e)))
         }
     }
 
     override suspend fun logout() {
-        tokenManager.clearAll()
+        tokenStorage.clearAll()
     }
 
-    override suspend fun isLoggedIn(): Boolean = tokenManager.isLoggedIn()
+    override suspend fun isLoggedIn(): Boolean = tokenStorage.isLoggedIn()
 
     override suspend fun getCurrentUser(): User? {
         if (!isLoggedIn()) return null
         return User(
-            id = tokenManager.getUserId(),
-            name = tokenManager.getUserName(),
-            email = tokenManager.getUserEmail(),
-            role = UserRole.valueOf(tokenManager.getUserRole().ifEmpty { "CLIENTE" })
+            id = tokenStorage.getUserId(),
+            name = tokenStorage.getUserName(),
+            email = tokenStorage.getUserEmail(),
+            role = UserRole.valueOf(tokenStorage.getUserRole().ifEmpty { "CLIENTE" })
         )
     }
 }

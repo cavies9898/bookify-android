@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Bookify</string>
+
+    <!-- Login errors -->
+    <string name="error_empty_email">El email es obligatorio</string>
+    <string name="error_invalid_email">Ingresa un email válido</string>
+    <string name="error_empty_password">La contraseña es obligatoria</string>
+    <string name="error_short_password">La contraseña debe tener al menos 6 caracteres</string>
 </resources>

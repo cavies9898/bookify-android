@@ -8,6 +8,7 @@ import com.cavies.bookify.core.domain.repository.AuthRepository
 import com.cavies.bookify.core.domain.repository.BookingRepository
 import com.cavies.bookify.core.domain.repository.ServiceRepository
 import com.cavies.bookify.core.domain.repository.TokenProvider
+import com.cavies.bookify.core.domain.repository.TokenStorage
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -30,6 +31,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindBookingRepository(impl: BookingRepositoryImpl): BookingRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTokenStorage(impl: TokenManager): TokenStorage
 }
 
 @Module
@@ -38,14 +43,14 @@ object TokenProviderModule {
 
     @Provides
     @Singleton
-    fun provideTokenProvider(tokenManager: TokenManager): TokenProvider {
+    fun provideTokenProvider(tokenStorage: TokenStorage): TokenProvider {
         return object : TokenProvider {
-            override suspend fun getAccessToken() = tokenManager.getAccessToken()
-            override suspend fun getRefreshToken() = tokenManager.getRefreshToken()
+            override suspend fun getAccessToken() = tokenStorage.getAccessToken()
+            override suspend fun getRefreshToken() = tokenStorage.getRefreshToken()
             override suspend fun saveTokens(accessToken: String, refreshToken: String) =
-                tokenManager.saveTokens(accessToken, refreshToken)
+                tokenStorage.saveTokens(accessToken, refreshToken)
 
-            override suspend fun clearTokens() = tokenManager.clearAll()
+            override suspend fun clearTokens() = tokenStorage.clearAll()
         }
     }
 }

@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.cavies.bookify.core.domain.repository.TokenStorage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,15 +19,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 @Singleton
 class TokenManager @Inject constructor(
     @param:ApplicationContext private val context: Context
-) {
-    private object Keys {
-        val ACCESS_TOKEN = stringPreferencesKey("access_token")
-        val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
-        val USER_ROLE = stringPreferencesKey("user_role")
-        val USER_NAME = stringPreferencesKey("user_name")
-        val USER_EMAIL = stringPreferencesKey("user_email")
-        val USER_ID = longPreferencesKey("user_id")
-    }
+) : TokenStorage {
 
     private val encryptedPrefs by lazy {
         try {
@@ -47,22 +40,22 @@ class TokenManager @Inject constructor(
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
-    suspend fun saveTokens(accessToken: String, refreshToken: String) {
+    override suspend fun saveTokens(accessToken: String, refreshToken: String) {
         encryptedPrefs.edit {
             putString("access_token", accessToken)
                 .putString("refresh_token", refreshToken)
         }
     }
 
-    suspend fun getAccessToken(): String? {
+    override suspend fun getAccessToken(): String? {
         return encryptedPrefs.getString("access_token", null)
     }
 
-    suspend fun getRefreshToken(): String? {
+    override suspend fun getRefreshToken(): String? {
         return encryptedPrefs.getString("refresh_token", null)
     }
 
-    suspend fun saveUser(id: Long, name: String, email: String, role: String) {
+    override suspend fun saveUser(id: Long, name: String, email: String, role: String) {
         encryptedPrefs.edit {
             putLong("user_id", id)
                 .putString("user_name", name)
@@ -71,16 +64,16 @@ class TokenManager @Inject constructor(
         }
     }
 
-    suspend fun getUserId(): Long = encryptedPrefs.getLong("user_id", 0L)
-    suspend fun getUserName(): String = encryptedPrefs.getString("user_name", "") ?: ""
-    suspend fun getUserEmail(): String = encryptedPrefs.getString("user_email", "") ?: ""
-    suspend fun getUserRole(): String = encryptedPrefs.getString("user_role", "") ?: ""
+    override suspend fun getUserId(): Long = encryptedPrefs.getLong("user_id", 0L)
+    override suspend fun getUserName(): String = encryptedPrefs.getString("user_name", "") ?: ""
+    override suspend fun getUserEmail(): String = encryptedPrefs.getString("user_email", "") ?: ""
+    override suspend fun getUserRole(): String = encryptedPrefs.getString("user_role", "") ?: ""
 
-    suspend fun clearAll() {
+    override suspend fun clearAll() {
         encryptedPrefs.edit { clear() }
     }
 
-    suspend fun isLoggedIn(): Boolean {
+    override suspend fun isLoggedIn(): Boolean {
         return getAccessToken() != null
     }
 }
