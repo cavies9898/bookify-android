@@ -19,7 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,6 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.cavies.bookify.R
 import com.cavies.bookify.core.domain.repository.AuthRepository
 import com.cavies.bookify.ui.screen.admin.home.AdminHomeScreen
 import com.cavies.bookify.ui.screen.auth.login.LoginScreen
@@ -54,9 +55,9 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             val user = authRepository.getCurrentUser()
             _startDestination.value = when {
-                user != null && user.role.name == "ADMIN" -> "admin_tabs"
-                user != null -> "client_tabs"
-                else -> "login"
+                user != null && user.role.name == "ADMIN" -> Routes.ADMIN_TABS
+                user != null -> Routes.CLIENT_TABS
+                else -> Routes.LOGIN
             }
         }
     }
@@ -75,7 +76,7 @@ fun BookifyNavHost(
         Scaffold(
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
-                if (chromeState.showBottomBar.value || chromeState.title.value != "Bookify") {
+                if (chromeState.showBottomBar.value || chromeState.title.value != stringResource(R.string.app_name)) {
                     TopAppBar(
                         title = { Text(chromeState.title.value) },
                         navigationIcon = {
@@ -83,7 +84,7 @@ fun BookifyNavHost(
                                 IconButton(onClick = {
                                     chromeState.onBackClick.value?.invoke()
                                 }) {
-                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back))
                                 }
                             }
                         }
@@ -114,7 +115,7 @@ fun BookifyNavHost(
                     }) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "Agregar"
+                            contentDescription = stringResource(R.string.cd_add)
                         )
                     }
                 }
@@ -125,47 +126,47 @@ fun BookifyNavHost(
                 startDestination = dest,
                 modifier = Modifier.padding(padding)
             ) {
-                composable("login") {
+                composable(Routes.LOGIN) {
                     LoginScreen(
-                        onNavigateToRegister = { navController.navigate("register") },
-                        onNavigateToForgotPassword = { navController.navigate("forgot_password") },
+                        onNavigateToRegister = { navController.navigate(Routes.REGISTER) },
+                        onNavigateToForgotPassword = { navController.navigate(Routes.FORGOT_PASSWORD) },
                         onNavigateToClient = {
-                            navController.navigate("client_tabs") {
+                            navController.navigate(Routes.CLIENT_TABS) {
                                 popUpTo(0) { inclusive = true }
                             }
                         },
                         onNavigateToAdmin = {
-                            navController.navigate("admin_tabs") {
+                            navController.navigate(Routes.ADMIN_TABS) {
                                 popUpTo(0) { inclusive = true }
                             }
                         }
                     )
                 }
 
-                composable("register") {
+                composable(Routes.REGISTER) {
                     RegisterScreen(
                         onNavigateBack = {
-                            navController.navigate("login") {
-                                popUpTo("register") { inclusive = true }
+                            navController.navigate(Routes.LOGIN) {
+                                popUpTo(Routes.REGISTER) { inclusive = true }
                             }
                         },
                         onNavigateToClient = {
-                            navController.navigate("client_tabs") {
+                            navController.navigate(Routes.CLIENT_TABS) {
                                 popUpTo(0) { inclusive = true }
                             }
                         }
                     )
                 }
 
-                composable("forgot_password") {
+                composable(Routes.FORGOT_PASSWORD) {
                     PasswordRecoveryScreen(
                         onNavigateBack = {
-                            navController.navigate("login") {
-                                popUpTo("forgot_password") { inclusive = true }
+                            navController.navigate(Routes.LOGIN) {
+                                popUpTo(Routes.FORGOT_PASSWORD) { inclusive = true }
                             }
                         },
                         onNavigateToLogin = {
-                            navController.navigate("login") {
+                            navController.navigate(Routes.LOGIN) {
                                 popUpTo(0) { inclusive = true }
                             }
                         }
@@ -173,7 +174,7 @@ fun BookifyNavHost(
                 }
 
                 composable(
-                    "reset_password/{email}",
+                    Routes.RESET_PASSWORD,
                     arguments = listOf(navArgument("email") { type = NavType.StringType })
                 ) { backStackEntry ->
                     val email = backStackEntry.arguments?.getString("email") ?: ""
@@ -181,17 +182,17 @@ fun BookifyNavHost(
                         email = email,
                         onNavigateBack = { navController.popBackStack() },
                         onResetSuccess = {
-                            navController.navigate("login") {
+                            navController.navigate(Routes.LOGIN) {
                                 popUpTo(0) { inclusive = true }
                             }
                         }
                     )
                 }
 
-                composable("client_tabs") {
+                composable(Routes.CLIENT_TABS) {
                     ClientHomeScreen(
                         onNavigateToLogin = {
-                            navController.navigate("login") {
+                            navController.navigate(Routes.LOGIN) {
                                 popUpTo(0) { inclusive = true }
                             }
                         },
@@ -199,10 +200,10 @@ fun BookifyNavHost(
                     )
                 }
 
-                composable("admin_tabs") {
+                composable(Routes.ADMIN_TABS) {
                     AdminHomeScreen(
                         onNavigateToLogin = {
-                            navController.navigate("login") {
+                            navController.navigate(Routes.LOGIN) {
                                 popUpTo(0) { inclusive = true }
                             }
                         },

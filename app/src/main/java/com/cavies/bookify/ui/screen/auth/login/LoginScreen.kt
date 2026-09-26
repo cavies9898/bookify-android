@@ -186,13 +186,13 @@ private fun LoginHeader() {
     )
     Spacer(modifier = Modifier.height(16.dp))
     Text(
-        text = "Bookify",
+        text = stringResource(R.string.app_name),
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.primary
     )
     Spacer(modifier = Modifier.height(8.dp))
     Text(
-        text = "Gestiona tus reservas",
+        text = stringResource(R.string.login_subtitle),
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
@@ -209,7 +209,7 @@ private fun EmailField(
     OutlinedTextField(
         value = email,
         onValueChange = onEmailChange,
-        label = { Text("Email") },
+        label = { Text(stringResource(R.string.label_email)) },
         isError = emailError != null,
         supportingText = emailError?.let { error ->
             { Text(error, color = MaterialTheme.colorScheme.error) }
@@ -238,7 +238,7 @@ private fun PasswordField(
     OutlinedTextField(
         value = password,
         onValueChange = onPasswordChange,
-        label = { Text("Contraseña") },
+        label = { Text(stringResource(R.string.label_password)) },
         isError = passwordError != null,
         supportingText = passwordError?.let { error ->
             { Text(error, color = MaterialTheme.colorScheme.error) }
@@ -264,7 +264,7 @@ private fun PasswordVisibilityToggle(
     visible: Boolean,
     onToggle: () -> Unit
 ) {
-    val description = if (visible) "Ocultar contraseña" else "Mostrar contraseña"
+    val description = if (visible) stringResource(R.string.cd_hide_password) else stringResource(R.string.cd_show_password)
     IconButton(onClick = onToggle) {
         Icon(
             imageVector = if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
@@ -292,7 +292,7 @@ private fun LoginButton(
 ) {
     ActionCardButton(
         icon = Icons.Filled.AccountCircle,
-        label = if (isLoading) "Ingresando..." else "Iniciar Sesión",
+        label = if (isLoading) stringResource(R.string.btn_login_loading) else stringResource(R.string.btn_login),
         onClick = onClick,
         enabled = !isLoading,
         modifier = Modifier.fillMaxWidth()
@@ -302,13 +302,13 @@ private fun LoginButton(
 @Composable
 private fun ForgotPasswordButton(onClick: () -> Unit) {
     TextButton(onClick = onClick) {
-        Text("¿Olvidaste tu contraseña?")
+        Text(stringResource(R.string.login_forgot_password))
     }
 }
 
 @Composable
 private fun RegisterButton(onClick: () -> Unit) {
     TextButton(onClick = onClick) {
-        Text("¿No tienes cuenta? Registrarse")
+        Text(stringResource(R.string.login_no_account))
     }
 }

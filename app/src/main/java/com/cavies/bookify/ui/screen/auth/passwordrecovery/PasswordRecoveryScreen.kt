@@ -1,6 +1,5 @@
 package com.cavies.bookify.ui.screen.auth.passwordrecovery
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,12 +38,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cavies.bookify.R
+import com.cavies.bookify.core.domain.usecase.ForgotPasswordUseCase
+import com.cavies.bookify.core.domain.usecase.ResetPasswordUseCase
 import com.cavies.bookify.ui.component.ActionCardButton
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,10 +67,12 @@ fun PasswordRecoveryScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-    val codeValid = code.length == 6
-    val passwordValid = newPassword.length >= 8
-    val passwordsMatch = newPassword == confirmPassword
-    val isResetValid = codeValid && passwordValid && passwordsMatch
+    HandlePasswordRecoveryEvents(viewModel, onNavigateToLogin)
+
+    val emailErrorMessage = mapEmailError(uiState.emailError)
+    val codeErrorMessage = mapCodeError(uiState.codeError)
+    val passwordErrorMessage = mapPasswordError(uiState.passwordError)
+    val confirmPasswordErrorMessage = mapConfirmPasswordError(uiState.confirmPasswordError)
 
     Column(
         modifier = Modifier
@@ -76,22 +82,18 @@ fun PasswordRecoveryScreen(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onNavigateBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-            }
-            Text("Recuperar Contraseña", style = MaterialTheme.typography.titleLarge)
-        }
-        Spacer(modifier = Modifier.height(16.dp))
+        Header(onNavigateBack)
+
         when (uiState.step) {
             1 -> StepSendCode(
                 emailInput = emailInput,
-                onEmailChange = { emailInput = it },
+                onEmailChange = {
+                    emailInput = it
+                    viewModel.clearEmailError()
+                },
+                emailError = emailErrorMessage,
                 isLoading = uiState.isLoading,
-                error = uiState.error,
+                serverError = uiState.serverError,
                 onSendCode = {
                     focusManager.clearFocus()
                     viewModel.forgotPassword(emailInput)
@@ -99,24 +101,32 @@ fun PasswordRecoveryScreen(
             )
             2 -> StepResetPassword(
                 code = code,
-                onCodeChange = { if (it.length <= 6) code = it },
+                onCodeChange = {
+                    if (it.length <= 6) code = it
+                    viewModel.clearCodeError()
+                },
+                codeError = codeErrorMessage,
                 newPassword = newPassword,
-                onNewPasswordChange = { newPassword = it },
+                onNewPasswordChange = {
+                    newPassword = it
+                    viewModel.clearPasswordErrors()
+                },
                 passwordVisible = passwordVisible,
                 onPasswordVisibleChange = { passwordVisible = it },
+                passwordError = passwordErrorMessage,
                 confirmPassword = confirmPassword,
-                onConfirmPasswordChange = { confirmPassword = it },
+                onConfirmPasswordChange = {
+                    confirmPassword = it
+                    viewModel.clearPasswordErrors()
+                },
                 confirmPasswordVisible = confirmPasswordVisible,
                 onConfirmPasswordVisibleChange = { confirmPasswordVisible = it },
-                codeValid = codeValid,
-                passwordValid = passwordValid,
-                passwordsMatch = passwordsMatch,
-                isResetValid = isResetValid,
+                confirmPasswordError = confirmPasswordErrorMessage,
                 isLoading = uiState.isLoading,
-                error = uiState.error,
+                serverError = uiState.serverError,
                 onResetPassword = {
                     focusManager.clearFocus()
-                    viewModel.resetPassword(code, newPassword)
+                    viewModel.resetPassword(code, newPassword, confirmPassword)
                 }
             )
             3 -> StepSuccess(
@@ -128,11 +138,75 @@ fun PasswordRecoveryScreen(
 }
 
 @Composable
+private fun HandlePasswordRecoveryEvents(
+    viewModel: PasswordRecoveryViewModel,
+    onNavigateToLogin: () -> Unit
+) {
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is PasswordRecoveryEvent.NavigateToLogin -> onNavigateToLogin()
+            }
+        }
+    }
+}
+
+@Composable
+private fun mapEmailError(error: ForgotPasswordUseCase.ValidationError?): String? {
+    return when (error) {
+        is ForgotPasswordUseCase.ValidationError.EmptyEmail -> stringResource(R.string.error_empty_email)
+        is ForgotPasswordUseCase.ValidationError.InvalidEmail -> stringResource(R.string.error_invalid_email)
+        null -> null
+    }
+}
+
+@Composable
+private fun mapCodeError(error: ResetPasswordUseCase.ValidationError?): String? {
+    return when (error) {
+        is ResetPasswordUseCase.ValidationError.EmptyCode -> stringResource(R.string.error_empty_code)
+        is ResetPasswordUseCase.ValidationError.InvalidCodeLength -> stringResource(R.string.error_invalid_code_length)
+        else -> null
+    }
+}
+
+@Composable
+private fun mapPasswordError(error: ResetPasswordUseCase.ValidationError?): String? {
+    return when (error) {
+        is ResetPasswordUseCase.ValidationError.EmptyPassword -> stringResource(R.string.error_empty_password)
+        is ResetPasswordUseCase.ValidationError.ShortPassword -> stringResource(R.string.error_short_password_8)
+        else -> null
+    }
+}
+
+@Composable
+private fun mapConfirmPasswordError(error: ResetPasswordUseCase.ValidationError?): String? {
+    return when (error) {
+        is ResetPasswordUseCase.ValidationError.PasswordsDoNotMatch -> stringResource(R.string.error_passwords_do_not_match)
+        else -> null
+    }
+}
+
+@Composable
+private fun Header(onNavigateBack: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onNavigateBack) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back))
+        }
+        Text(stringResource(R.string.recovery_title), style = MaterialTheme.typography.titleLarge)
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+}
+
+@Composable
 private fun StepSendCode(
     emailInput: String,
     onEmailChange: (String) -> Unit,
+    emailError: String?,
     isLoading: Boolean,
-    error: String?,
+    serverError: String?,
     onSendCode: () -> Unit
 ) {
     Icon(
@@ -143,13 +217,13 @@ private fun StepSendCode(
     )
     Spacer(modifier = Modifier.height(16.dp))
     Text(
-        text = "¿Olvidaste tu contraseña?",
+        text = stringResource(R.string.recovery_forgot_title),
         style = MaterialTheme.typography.headlineMedium,
         color = MaterialTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.height(8.dp))
     Text(
-        text = "Ingresa tu email y te enviaremos un código para restablecerla.",
+        text = stringResource(R.string.recovery_forgot_subtitle),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
@@ -158,7 +232,11 @@ private fun StepSendCode(
     OutlinedTextField(
         value = emailInput,
         onValueChange = onEmailChange,
-        label = { Text("Email") },
+        label = { Text(stringResource(R.string.label_email)) },
+        isError = emailError != null,
+        supportingText = emailError?.let { error ->
+            { Text(error, color = MaterialTheme.colorScheme.error) }
+        },
         singleLine = true,
         leadingIcon = {
             Icon(Icons.Default.Email, contentDescription = null)
@@ -173,30 +251,14 @@ private fun StepSendCode(
         modifier = Modifier.fillMaxWidth()
     )
 
-    if (error != null) {
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = error,
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall
-        )
-    }
+    ServerError(serverError)
 
     Spacer(modifier = Modifier.height(24.dp))
 
     val isValidEmail = emailInput.contains("@") && emailInput.contains(".")
-    if (emailInput.isNotBlank() && !isValidEmail) {
-        Text(
-            text = "Ingresa un email válido",
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-    }
-
     ActionCardButton(
         icon = Icons.Default.Send,
-        label = if (isLoading) "Enviando..." else "Enviar código",
+        label = if (isLoading) stringResource(R.string.recovery_send_code_loading) else stringResource(R.string.recovery_send_code),
         onClick = onSendCode,
         enabled = !isLoading && isValidEmail,
         modifier = Modifier.fillMaxWidth()
@@ -207,20 +269,19 @@ private fun StepSendCode(
 private fun StepResetPassword(
     code: String,
     onCodeChange: (String) -> Unit,
+    codeError: String?,
     newPassword: String,
     onNewPasswordChange: (String) -> Unit,
     passwordVisible: Boolean,
     onPasswordVisibleChange: (Boolean) -> Unit,
+    passwordError: String?,
     confirmPassword: String,
     onConfirmPasswordChange: (String) -> Unit,
     confirmPasswordVisible: Boolean,
     onConfirmPasswordVisibleChange: (Boolean) -> Unit,
-    codeValid: Boolean,
-    passwordValid: Boolean,
-    passwordsMatch: Boolean,
-    isResetValid: Boolean,
+    confirmPasswordError: String?,
     isLoading: Boolean,
-    error: String?,
+    serverError: String?,
     onResetPassword: () -> Unit
 ) {
     Icon(
@@ -231,22 +292,56 @@ private fun StepResetPassword(
     )
     Spacer(modifier = Modifier.height(16.dp))
     Text(
-        text = "Restablecer Contraseña",
+        text = stringResource(R.string.recovery_reset_title),
         style = MaterialTheme.typography.headlineMedium,
         color = MaterialTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.height(8.dp))
     Text(
-        text = "Ingresa el código de 6 dígitos y tu nueva contraseña.",
+        text = stringResource(R.string.recovery_reset_subtitle),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     Spacer(modifier = Modifier.height(24.dp))
 
+    CodeField(code, onCodeChange, codeError)
+    Spacer(modifier = Modifier.height(12.dp))
+    NewPasswordField(newPassword, onNewPasswordChange, passwordVisible, onPasswordVisibleChange, passwordError)
+    Spacer(modifier = Modifier.height(12.dp))
+    ConfirmPasswordField(confirmPassword, onConfirmPasswordChange, confirmPasswordVisible, onConfirmPasswordVisibleChange, confirmPasswordError)
+
+    ServerError(serverError)
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    val codeValid = code.length == 6
+    val passwordValid = newPassword.length >= 8
+    val passwordsMatch = newPassword == confirmPassword
+    val isResetValid = codeValid && passwordValid && passwordsMatch
+
+    ActionCardButton(
+        icon = Icons.Default.Lock,
+        label = if (isLoading) stringResource(R.string.recovery_reset_loading) else stringResource(R.string.recovery_reset_title),
+        onClick = onResetPassword,
+        enabled = !isLoading && isResetValid,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun CodeField(
+    code: String,
+    onCodeChange: (String) -> Unit,
+    codeError: String?
+) {
     OutlinedTextField(
         value = code,
         onValueChange = onCodeChange,
-        label = { Text("Código de verificación") },
+        label = { Text(stringResource(R.string.label_verification_code)) },
+        isError = codeError != null,
+        supportingText = codeError?.let { error ->
+            { Text(error, color = MaterialTheme.colorScheme.error) }
+        },
         singleLine = true,
         leadingIcon = {
             Icon(Icons.Default.Pin, contentDescription = null)
@@ -257,22 +352,24 @@ private fun StepResetPassword(
         ),
         modifier = Modifier.fillMaxWidth()
     )
+}
 
-    if (code.isNotEmpty() && !codeValid) {
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "El código debe tener exactamente 6 caracteres",
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall
-        )
-    }
-
-    Spacer(modifier = Modifier.height(12.dp))
-
+@Composable
+private fun NewPasswordField(
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    passwordVisible: Boolean,
+    onPasswordVisibleChange: (Boolean) -> Unit,
+    passwordError: String?
+) {
     OutlinedTextField(
-        value = newPassword,
-        onValueChange = onNewPasswordChange,
-        label = { Text("Nueva contraseña") },
+        value = password,
+        onValueChange = onPasswordChange,
+        label = { Text(stringResource(R.string.label_new_password)) },
+        isError = passwordError != null,
+        supportingText = passwordError?.let { error ->
+            { Text(error, color = MaterialTheme.colorScheme.error) }
+        },
         singleLine = true,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         leadingIcon = {
@@ -282,7 +379,7 @@ private fun StepResetPassword(
             IconButton(onClick = { onPasswordVisibleChange(!passwordVisible) }) {
                 Icon(
                     imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                    contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                    contentDescription = if (passwordVisible) stringResource(R.string.cd_hide_password) else stringResource(R.string.cd_show_password)
                 )
             }
         },
@@ -292,22 +389,24 @@ private fun StepResetPassword(
         ),
         modifier = Modifier.fillMaxWidth()
     )
+}
 
-    if (newPassword.isNotEmpty() && !passwordValid) {
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Mínimo 8 caracteres",
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall
-        )
-    }
-
-    Spacer(modifier = Modifier.height(12.dp))
-
+@Composable
+private fun ConfirmPasswordField(
+    confirmPassword: String,
+    onConfirmPasswordChange: (String) -> Unit,
+    confirmPasswordVisible: Boolean,
+    onConfirmPasswordVisibleChange: (Boolean) -> Unit,
+    confirmPasswordError: String?
+) {
     OutlinedTextField(
         value = confirmPassword,
         onValueChange = onConfirmPasswordChange,
-        label = { Text("Confirmar contraseña") },
+        label = { Text(stringResource(R.string.label_confirm_password)) },
+        isError = confirmPasswordError != null,
+        supportingText = confirmPasswordError?.let { error ->
+            { Text(error, color = MaterialTheme.colorScheme.error) }
+        },
         singleLine = true,
         visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         leadingIcon = {
@@ -317,7 +416,7 @@ private fun StepResetPassword(
             IconButton(onClick = { onConfirmPasswordVisibleChange(!confirmPasswordVisible) }) {
                 Icon(
                     imageVector = if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                    contentDescription = if (confirmPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                    contentDescription = if (confirmPasswordVisible) stringResource(R.string.cd_hide_password) else stringResource(R.string.cd_show_password)
                 )
             }
         },
@@ -325,21 +424,12 @@ private fun StepResetPassword(
             keyboardType = KeyboardType.Password,
             imeAction = ImeAction.Done
         ),
-        keyboardActions = KeyboardActions(
-            onDone = { onResetPassword() }
-        ),
         modifier = Modifier.fillMaxWidth()
     )
+}
 
-    if (!passwordsMatch && confirmPassword.isNotEmpty()) {
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Las contraseñas no coinciden",
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall
-        )
-    }
-
+@Composable
+private fun ServerError(error: String?) {
     if (error != null) {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -348,16 +438,6 @@ private fun StepResetPassword(
             style = MaterialTheme.typography.bodySmall
         )
     }
-
-    Spacer(modifier = Modifier.height(24.dp))
-
-    ActionCardButton(
-        icon = Icons.Default.Lock,
-        label = if (isLoading) "Restableciendo..." else "Restablecer Contraseña",
-        onClick = onResetPassword,
-        enabled = !isLoading && isResetValid,
-        modifier = Modifier.fillMaxWidth()
-    )
 }
 
 @Composable
@@ -373,20 +453,20 @@ private fun StepSuccess(
     )
     Spacer(modifier = Modifier.height(16.dp))
     Text(
-        text = "Contraseña restablecida",
+        text = stringResource(R.string.recovery_reset_success),
         style = MaterialTheme.typography.headlineSmall,
         color = MaterialTheme.colorScheme.primary
     )
     Spacer(modifier = Modifier.height(8.dp))
     Text(
-        text = successMessage ?: "Tu contraseña ha sido cambiada exitosamente. Ya puedes iniciar sesión.",
+        text = successMessage ?: stringResource(R.string.recovery_reset_fallback),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     Spacer(modifier = Modifier.height(24.dp))
     ActionCardButton(
         icon = Icons.Default.Login,
-        label = "Ir al Login",
+        label = stringResource(R.string.btn_go_to_login),
         onClick = onNavigateToLogin,
         modifier = Modifier.fillMaxWidth()
     )

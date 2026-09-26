@@ -1,6 +1,5 @@
 package com.cavies.bookify.ui.screen.auth.resetpassword
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,12 +36,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cavies.bookify.R
+import com.cavies.bookify.core.domain.usecase.ResetPasswordUseCase
 import com.cavies.bookify.ui.component.ActionCardButton
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,23 +55,20 @@ fun ResetPasswordScreen(
     onResetSuccess: () -> Unit,
     viewModel: ResetPasswordViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val focusManager = LocalFocusManager.current
+
     var code by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
-    val uiState by viewModel.uiState.collectAsState()
-    val focusManager = LocalFocusManager.current
 
-    fun performResetPassword() {
-        focusManager.clearFocus()
-        viewModel.resetPassword(code, newPassword)
-    }
+    HandleResetPasswordEvents(viewModel, onResetSuccess)
 
-    val codeValid = code.length == 6
-    val passwordValid = newPassword.length >= 8
-    val passwordsMatch = newPassword == confirmPassword
-    val isValid = codeValid && passwordValid && passwordsMatch
+    val codeErrorMessage = mapCodeError(uiState.codeError)
+    val passwordErrorMessage = mapPasswordError(uiState.passwordError)
+    val confirmPasswordErrorMessage = mapConfirmPasswordError(uiState.confirmPasswordError)
 
     Column(
         modifier = Modifier
@@ -76,182 +76,311 @@ fun ResetPasswordScreen(
             .imePadding()
             .padding(horizontal = 32.dp)
             .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onNavigateBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-            }
-            Text("Restablecer Contraseña", style = MaterialTheme.typography.titleLarge)
-        }
-        Icon(
-            imageVector = Icons.Default.Lock,
-            contentDescription = null,
-            modifier = Modifier.height(64.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Nueva Contraseña",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Ingresa el código de 6 caracteres y tu nueva contraseña.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(24.dp))
+        Header(onNavigateBack)
 
         if (!uiState.resetSuccess) {
-            OutlinedTextField(
-                value = code,
-                onValueChange = { if (it.length <= 6) code = it },
-                label = { Text("Código de verificación") },
-                singleLine = true,
-                leadingIcon = {
-                    Icon(Icons.Default.Pin, contentDescription = null)
+            ResetPasswordForm(
+                code = code,
+                onCodeChange = {
+                    if (it.length <= 6) code = it
+                    viewModel.clearCodeError()
                 },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            if (code.isNotEmpty() && !codeValid) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "El código debe tener exactamente 6 caracteres",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = newPassword,
-                onValueChange = { newPassword = it },
-                label = { Text("Nueva contraseña") },
-                singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                leadingIcon = {
-                    Icon(Icons.Default.Lock, contentDescription = null)
+                codeError = codeErrorMessage,
+                newPassword = newPassword,
+                onNewPasswordChange = {
+                    newPassword = it
+                    viewModel.clearPasswordErrors()
                 },
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
-                        )
-                    }
+                passwordVisible = passwordVisible,
+                onPasswordVisibleChange = { passwordVisible = it },
+                passwordError = passwordErrorMessage,
+                confirmPassword = confirmPassword,
+                onConfirmPasswordChange = {
+                    confirmPassword = it
+                    viewModel.clearPasswordErrors()
                 },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Next
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            if (newPassword.isNotEmpty() && !passwordValid) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Mínimo 8 caracteres",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Confirmar contraseña") },
-                singleLine = true,
-                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                leadingIcon = {
-                    Icon(Icons.Default.Lock, contentDescription = null)
-                },
-                trailingIcon = {
-                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                        Icon(
-                            imageVector = if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = if (confirmPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña"
-                        )
-                    }
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        focusManager.clearFocus()
-                        performResetPassword()
-                    }
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            if (!passwordsMatch && confirmPassword.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Las contraseñas no coinciden",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            if (uiState.error != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = uiState.error ?: "",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            ActionCardButton(
-                icon = Icons.Default.Lock,
-                label = if (uiState.isLoading) "Restableciendo..." else "Restablecer Contraseña",
-                onClick = { performResetPassword() },
-                modifier = Modifier.fillMaxWidth()
+                confirmPasswordVisible = confirmPasswordVisible,
+                onConfirmPasswordVisibleChange = { confirmPasswordVisible = it },
+                confirmPasswordError = confirmPasswordErrorMessage,
+                isLoading = uiState.isLoading,
+                serverError = uiState.serverError,
+                onResetPassword = {
+                    focusManager.clearFocus()
+                    viewModel.resetPassword(code, newPassword, confirmPassword)
+                }
             )
         } else {
-            Icon(
-                imageVector = Icons.Default.CheckCircle,
-                contentDescription = null,
-                modifier = Modifier.height(64.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Contraseña restablecida",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = uiState.successMessage ?: "Tu contraseña ha sido cambiada exitosamente. Ya puedes iniciar sesión.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            ActionCardButton(
-                icon = Icons.Default.Login,
-                label = "Ir al Login",
-                onClick = onResetSuccess,
-                modifier = Modifier.fillMaxWidth()
+            ResetPasswordSuccess(
+                successMessage = uiState.successMessage,
+                onResetSuccess = onResetSuccess
             )
         }
     }
+}
+
+@Composable
+private fun HandleResetPasswordEvents(
+    viewModel: ResetPasswordViewModel,
+    onResetSuccess: () -> Unit
+) {
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is ResetPasswordEvent.NavigateToLogin -> onResetSuccess()
+            }
+        }
+    }
+}
+
+@Composable
+private fun mapCodeError(error: ResetPasswordUseCase.ValidationError?): String? {
+    return when (error) {
+        is ResetPasswordUseCase.ValidationError.EmptyCode -> stringResource(R.string.error_empty_code)
+        is ResetPasswordUseCase.ValidationError.InvalidCodeLength -> stringResource(R.string.error_invalid_code_length)
+        else -> null
+    }
+}
+
+@Composable
+private fun mapPasswordError(error: ResetPasswordUseCase.ValidationError?): String? {
+    return when (error) {
+        is ResetPasswordUseCase.ValidationError.EmptyPassword -> stringResource(R.string.error_empty_password)
+        is ResetPasswordUseCase.ValidationError.ShortPassword -> stringResource(R.string.error_short_password_8)
+        else -> null
+    }
+}
+
+@Composable
+private fun mapConfirmPasswordError(error: ResetPasswordUseCase.ValidationError?): String? {
+    return when (error) {
+        is ResetPasswordUseCase.ValidationError.PasswordsDoNotMatch -> stringResource(R.string.error_passwords_do_not_match)
+        else -> null
+    }
+}
+
+@Composable
+private fun Header(onNavigateBack: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onNavigateBack) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back))
+        }
+        Text(stringResource(R.string.reset_title), style = MaterialTheme.typography.titleLarge)
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+}
+
+@Composable
+private fun ResetPasswordForm(
+    code: String,
+    onCodeChange: (String) -> Unit,
+    codeError: String?,
+    newPassword: String,
+    onNewPasswordChange: (String) -> Unit,
+    passwordVisible: Boolean,
+    onPasswordVisibleChange: (Boolean) -> Unit,
+    passwordError: String?,
+    confirmPassword: String,
+    onConfirmPasswordChange: (String) -> Unit,
+    confirmPasswordVisible: Boolean,
+    onConfirmPasswordVisibleChange: (Boolean) -> Unit,
+    confirmPasswordError: String?,
+    isLoading: Boolean,
+    serverError: String?,
+    onResetPassword: () -> Unit
+) {
+    Icon(
+        imageVector = Icons.Default.Lock,
+        contentDescription = null,
+        modifier = Modifier.height(64.dp),
+        tint = MaterialTheme.colorScheme.primary
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Text(
+        text = stringResource(R.string.reset_title),
+        style = MaterialTheme.typography.headlineMedium,
+        color = MaterialTheme.colorScheme.onSurface
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(
+        text = stringResource(R.string.reset_subtitle),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    Spacer(modifier = Modifier.height(24.dp))
+
+    CodeField(code, onCodeChange, codeError)
+    Spacer(modifier = Modifier.height(12.dp))
+    NewPasswordField(newPassword, onNewPasswordChange, passwordVisible, onPasswordVisibleChange, passwordError)
+    Spacer(modifier = Modifier.height(12.dp))
+    ConfirmPasswordField(confirmPassword, onConfirmPasswordChange, confirmPasswordVisible, onConfirmPasswordVisibleChange, confirmPasswordError, onResetPassword)
+
+    ServerError(serverError)
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    val codeValid = code.length == 6
+    val passwordValid = newPassword.length >= 8
+    val passwordsMatch = newPassword == confirmPassword
+    val isResetValid = codeValid && passwordValid && passwordsMatch
+
+    ActionCardButton(
+        icon = Icons.Default.Lock,
+        label = if (isLoading) stringResource(R.string.reset_loading) else stringResource(R.string.reset_title),
+        onClick = onResetPassword,
+        enabled = !isLoading && isResetValid,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun CodeField(
+    code: String,
+    onCodeChange: (String) -> Unit,
+    codeError: String?
+) {
+    OutlinedTextField(
+        value = code,
+        onValueChange = onCodeChange,
+        label = { Text(stringResource(R.string.label_verification_code)) },
+        isError = codeError != null,
+        supportingText = codeError?.let { error ->
+            { Text(error, color = MaterialTheme.colorScheme.error) }
+        },
+        singleLine = true,
+        leadingIcon = {
+            Icon(Icons.Default.Pin, contentDescription = null)
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Next
+        ),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun NewPasswordField(
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    passwordVisible: Boolean,
+    onPasswordVisibleChange: (Boolean) -> Unit,
+    passwordError: String?
+) {
+    OutlinedTextField(
+        value = password,
+        onValueChange = onPasswordChange,
+        label = { Text(stringResource(R.string.label_new_password)) },
+        isError = passwordError != null,
+        supportingText = passwordError?.let { error ->
+            { Text(error, color = MaterialTheme.colorScheme.error) }
+        },
+        singleLine = true,
+        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        leadingIcon = {
+            Icon(Icons.Default.Lock, contentDescription = null)
+        },
+        trailingIcon = {
+            IconButton(onClick = { onPasswordVisibleChange(!passwordVisible) }) {
+                Icon(
+                    imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                    contentDescription = if (passwordVisible) stringResource(R.string.cd_hide_password) else stringResource(R.string.cd_show_password)
+                )
+            }
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Next
+        ),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun ConfirmPasswordField(
+    confirmPassword: String,
+    onConfirmPasswordChange: (String) -> Unit,
+    confirmPasswordVisible: Boolean,
+    onConfirmPasswordVisibleChange: (Boolean) -> Unit,
+    confirmPasswordError: String?,
+    onResetPassword: () -> Unit
+) {
+    OutlinedTextField(
+        value = confirmPassword,
+        onValueChange = onConfirmPasswordChange,
+        label = { Text(stringResource(R.string.label_confirm_password)) },
+        isError = confirmPasswordError != null,
+        supportingText = confirmPasswordError?.let { error ->
+            { Text(error, color = MaterialTheme.colorScheme.error) }
+        },
+        singleLine = true,
+        visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        leadingIcon = {
+            Icon(Icons.Default.Lock, contentDescription = null)
+        },
+        trailingIcon = {
+            IconButton(onClick = { onConfirmPasswordVisibleChange(!confirmPasswordVisible) }) {
+                Icon(
+                    imageVector = if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                    contentDescription = if (confirmPasswordVisible) stringResource(R.string.cd_hide_password) else stringResource(R.string.cd_show_password)
+                )
+            }
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = { onResetPassword() }
+        ),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun ServerError(error: String?) {
+    if (error != null) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = error,
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
+
+@Composable
+private fun ResetPasswordSuccess(
+    successMessage: String?,
+    onResetSuccess: () -> Unit
+) {
+    Icon(
+        imageVector = Icons.Default.CheckCircle,
+        contentDescription = null,
+        modifier = Modifier.height(64.dp),
+        tint = MaterialTheme.colorScheme.primary
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Text(
+        text = stringResource(R.string.reset_success),
+        style = MaterialTheme.typography.headlineSmall,
+        color = MaterialTheme.colorScheme.primary
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(
+        text = successMessage ?: stringResource(R.string.reset_fallback),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    Spacer(modifier = Modifier.height(24.dp))
+    ActionCardButton(
+        icon = Icons.Default.Login,
+        label = stringResource(R.string.btn_go_to_login),
+        onClick = onResetSuccess,
+        modifier = Modifier.fillMaxWidth()
+    )
 }

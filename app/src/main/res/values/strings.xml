@@ -1,9 +1,68 @@
 <resources>
     <string name="app_name">Bookify</string>
 
+    <!-- Common -->
+    <string name="btn_back">Volver</string>
+    <string name="btn_go_to_login">Ir al Login</string>
+    <string name="btn_login">Iniciar Sesión</string>
+    <string name="btn_login_loading">Ingresando…</string>
+
+    <!-- Field labels -->
+    <string name="label_email">Email</string>
+    <string name="label_password">Contraseña</string>
+    <string name="label_new_password">Nueva contraseña</string>
+    <string name="label_confirm_password">Confirmar contraseña</string>
+    <string name="label_verification_code">Código de verificación</string>
+
+    <!-- Password visibility -->
+    <string name="cd_show_password">Mostrar contraseña</string>
+    <string name="cd_hide_password">Ocultar contraseña</string>
+    <string name="cd_add">Agregar</string>
+
+    <!-- Login -->
+    <string name="login_subtitle">Gestiona tus reservas</string>
+    <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="login_no_account">¿No tienes cuenta? Registrarse</string>
+
     <!-- Login errors -->
     <string name="error_empty_email">El email es obligatorio</string>
     <string name="error_invalid_email">Ingresa un email válido</string>
     <string name="error_empty_password">La contraseña es obligatoria</string>
     <string name="error_short_password">La contraseña debe tener al menos 6 caracteres</string>
+
+    <!-- Password recovery -->
+    <string name="recovery_title">Recuperar Contraseña</string>
+    <string name="recovery_forgot_title">¿Olvidaste tu contraseña?</string>
+    <string name="recovery_forgot_subtitle">Ingresa tu email y te enviaremos un código para restablecerla.</string>
+    <string name="recovery_send_code">Enviar código</string>
+    <string name="recovery_send_code_loading">Enviando…</string>
+    <string name="recovery_reset_title">Restablecer Contraseña</string>
+    <string name="recovery_reset_subtitle">Ingresa el código de 6 dígitos y tu nueva contraseña.</string>
+    <string name="recovery_reset_loading">Restableciendo…</string>
+    <string name="recovery_reset_success">Contraseña restablecida</string>
+    <string name="recovery_reset_fallback">Tu contraseña ha sido cambiada exitosamente. Ya puedes iniciar sesión.</string>
+
+    <!-- Password recovery errors -->
+    <string name="error_empty_code">El código es obligatorio</string>
+    <string name="error_invalid_code_length">El código debe tener exactamente 6 caracteres</string>
+    <string name="error_short_password_8">Mínimo 8 caracteres</string>
+    <string name="error_passwords_do_not_match">Las contraseñas no coinciden</string>
+
+    <!-- Reset password -->
+    <string name="reset_title">Restablecer Contraseña</string>
+    <string name="reset_subtitle">Ingresa el código de 6 caracteres y tu nueva contraseña.</string>
+    <string name="reset_loading">Restableciendo…</string>
+    <string name="reset_success">Contraseña restablecida</string>
+    <string name="reset_fallback">Tu contraseña ha sido cambiada exitosamente. Ya puedes iniciar sesión.</string>
+
+    <!-- Register -->
+    <string name="register_title">Registrarse</string>
+    <string name="label_name">Nombre</string>
+    <string name="label_password_with_hint">Contraseña (mín. 6 caracteres)</string>
+    <string name="btn_register">Registrarse</string>
+    <string name="btn_register_loading">Registrando…</string>
+
+    <!-- Register errors -->
+    <string name="error_empty_name">El nombre es obligatorio</string>
+    <string name="error_short_name">El nombre debe tener al menos 2 caracteres</string>
 </resources>

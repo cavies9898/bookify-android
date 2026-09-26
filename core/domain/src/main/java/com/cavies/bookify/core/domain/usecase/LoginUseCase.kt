@@ -31,5 +31,5 @@ class LoginUseCase @Inject constructor(
     }
 }
 
-class ValidationException(val error: LoginUseCase.ValidationError) :
+class ValidationException(val error: Any) :
     Exception("Validation failed")

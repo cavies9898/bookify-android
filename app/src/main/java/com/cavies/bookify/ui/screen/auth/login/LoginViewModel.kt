@@ -43,7 +43,7 @@ class LoginViewModel @Inject constructor(
                 }
                 .onFailure { e ->
                     when (e) {
-                        is ValidationException -> handleValidationError(e.error)
+                        is ValidationException -> handleValidationError(e.error as LoginUseCase.ValidationError)
                         else -> _uiState.update {
                             it.copy(
                                 isLoading = false,
