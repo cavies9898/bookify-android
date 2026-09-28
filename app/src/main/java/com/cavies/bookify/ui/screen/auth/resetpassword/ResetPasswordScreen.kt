@@ -1,26 +1,28 @@
 package com.cavies.bookify.ui.screen.auth.resetpassword
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Pin
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,12 +48,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.cavies.bookify.R
 import com.cavies.bookify.core.domain.usecase.ResetPasswordUseCase
 import com.cavies.bookify.ui.component.ActionCardButton
+import com.cavies.bookify.ui.component.LoadingOverlay
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResetPasswordScreen(
     email: String,
-    onNavigateBack: () -> Unit,
     onResetSuccess: () -> Unit,
     viewModel: ResetPasswordViewModel = hiltViewModel()
 ) {
@@ -70,15 +71,18 @@ fun ResetPasswordScreen(
     val passwordErrorMessage = mapPasswordError(uiState.passwordError)
     val confirmPasswordErrorMessage = mapConfirmPasswordError(uiState.confirmPasswordError)
 
+    Box(Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .windowInsetsPadding(WindowInsets.navigationBars)
             .imePadding()
             .padding(horizontal = 32.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Header(onNavigateBack)
+        Spacer(modifier = Modifier.height(16.dp))
 
         if (!uiState.resetSuccess) {
             ResetPasswordForm(
@@ -117,6 +121,8 @@ fun ResetPasswordScreen(
                 onResetSuccess = onResetSuccess
             )
         }
+    }
+        LoadingOverlay(isLoading = uiState.isLoading)
     }
 }
 
@@ -158,20 +164,6 @@ private fun mapConfirmPasswordError(error: ResetPasswordUseCase.ValidationError?
         is ResetPasswordUseCase.ValidationError.PasswordsDoNotMatch -> stringResource(R.string.error_passwords_do_not_match)
         else -> null
     }
-}
-
-@Composable
-private fun Header(onNavigateBack: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onNavigateBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back))
-        }
-        Text(stringResource(R.string.reset_title), style = MaterialTheme.typography.titleLarge)
-    }
-    Spacer(modifier = Modifier.height(16.dp))
 }
 
 @Composable

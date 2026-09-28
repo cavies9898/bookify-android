@@ -17,6 +17,7 @@ class AppChromeState {
     val onTabSelected = mutableStateOf<(Int) -> Unit>({})
     val showFab = mutableStateOf(false)
     val onFabClick = mutableStateOf<(() -> Unit)?>(null)
+    val useAppHeader = mutableStateOf(false)
 }
 
 data class BottomBarConfig(

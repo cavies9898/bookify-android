@@ -1,24 +1,25 @@
 package com.cavies.bookify.ui.screen.auth.register
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,11 +46,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.cavies.bookify.R
 import com.cavies.bookify.core.domain.usecase.RegisterUseCase
 import com.cavies.bookify.ui.component.ActionCardButton
+import com.cavies.bookify.ui.component.LoadingOverlay
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
-    onNavigateBack: () -> Unit,
     onNavigateToClient: () -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
@@ -94,8 +94,7 @@ fun RegisterScreen(
         onPasswordVisibilityToggle = { passwordVisible = !passwordVisible },
         serverError = uiState.serverError,
         isLoading = uiState.isLoading,
-        onRegister = { performRegister() },
-        onNavigateBack = onNavigateBack
+        onRegister = { performRegister() }
     )
 }
 
@@ -155,64 +154,54 @@ private fun RegisterContent(
     onPasswordVisibilityToggle: () -> Unit,
     serverError: String?,
     isLoading: Boolean,
-    onRegister: () -> Unit,
-    onNavigateBack: () -> Unit
+    onRegister: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .imePadding()
-            .padding(horizontal = 32.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        RegisterHeader(onNavigateBack)
-        Spacer(modifier = Modifier.height(24.dp))
-        NameField(name, onNameChange, nameError)
-        Spacer(modifier = Modifier.height(16.dp))
-        EmailField(email, onEmailChange, emailError)
-        Spacer(modifier = Modifier.height(16.dp))
-        PasswordField(password, onPasswordChange, passwordError, passwordVisible, onPasswordVisibilityToggle, onRegister)
-        ServerError(serverError)
-        Spacer(modifier = Modifier.height(24.dp))
+    Box(Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .imePadding()
+                .padding(horizontal = 32.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = stringResource(R.string.register_title),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.register_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            NameField(name, onNameChange, nameError)
+            Spacer(modifier = Modifier.height(16.dp))
+            EmailField(email, onEmailChange, emailError)
+            Spacer(modifier = Modifier.height(16.dp))
+            PasswordField(password, onPasswordChange, passwordError, passwordVisible, onPasswordVisibilityToggle, onRegister)
+            ServerError(serverError)
+            Spacer(modifier = Modifier.height(24.dp))
 
-        val isValidEmail = email.contains("@") && email.contains(".")
-        val isValidPassword = password.length >= 6
-        val isRegisterValid = name.length >= 2 && isValidEmail && isValidPassword
+            val isValidEmail = email.contains("@") && email.contains(".")
+            val isValidPassword = password.length >= 6
+            val isRegisterValid = name.length >= 2 && isValidEmail && isValidPassword
 
-        ActionCardButton(
-            icon = Icons.Default.PersonAdd,
-            label = if (isLoading) stringResource(R.string.btn_register_loading) else stringResource(R.string.btn_register),
-            onClick = onRegister,
-            enabled = !isLoading && isRegisterValid,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-
-@Composable
-private fun RegisterHeader(onNavigateBack: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onNavigateBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back))
+            ActionCardButton(
+                icon = Icons.Default.PersonAdd,
+                label = if (isLoading) stringResource(R.string.btn_register_loading) else stringResource(R.string.btn_register),
+                onClick = onRegister,
+                enabled = !isLoading && isRegisterValid,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
+        LoadingOverlay(isLoading = isLoading)
     }
-    Icon(
-        imageVector = Icons.Default.PersonAdd,
-        contentDescription = null,
-        modifier = Modifier.height(80.dp),
-        tint = MaterialTheme.colorScheme.primary
-    )
-    Spacer(modifier = Modifier.height(16.dp))
-    Text(
-        text = stringResource(R.string.register_title),
-        style = MaterialTheme.typography.headlineMedium,
-        color = MaterialTheme.colorScheme.primary
-    )
 }
 
 @Composable

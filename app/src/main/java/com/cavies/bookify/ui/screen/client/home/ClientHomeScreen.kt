@@ -14,13 +14,14 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.cavies.bookify.R
 import com.cavies.bookify.navigation.AppChromeState
 import com.cavies.bookify.navigation.BottomBarConfig
 import com.cavies.bookify.ui.screen.client.availability.AvailabilityScreen
@@ -39,7 +40,10 @@ fun ClientHomeScreen(
     val innerNavController = rememberNavController()
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    val tabs = listOf("Servicios", "Mis Reservas", "Perfil")
+    val tabServices = stringResource(R.string.client_tab_services)
+    val tabBookings = stringResource(R.string.client_tab_bookings)
+    val tabProfile = stringResource(R.string.client_tab_profile)
+    val tabs = listOf(tabServices, tabBookings, tabProfile)
     val icons = listOf(Icons.Default.List, Icons.Default.CalendarMonth, Icons.Default.Person)
     val routes = listOf("client_services", "client_bookings", "client_profile")
 
@@ -48,18 +52,18 @@ fun ClientHomeScreen(
     val currentArgs = navBackStackEntry?.arguments
 
     val title = when {
-        currentRoute == "client_services" -> "Servicios"
-        currentRoute == "client_service_detail/{serviceId}" -> "Detalle"
+        currentRoute == "client_services" -> tabServices
+        currentRoute == "client_service_detail/{serviceId}" -> stringResource(R.string.client_service_detail_title)
         currentRoute == "client_availability/{serviceId}/{serviceName}" -> {
-            currentArgs?.getString("serviceName") ?: "Disponibilidad"
+            currentArgs?.getString("serviceName") ?: stringResource(R.string.client_availability_title)
         }
         currentRoute == "client_create_booking/{serviceId}/{serviceName}/{startAt}/{endAt}" -> {
-            currentArgs?.getString("serviceName") ?: "Confirmar Reserva"
+            currentArgs?.getString("serviceName") ?: stringResource(R.string.client_create_booking_title)
         }
-        currentRoute == "client_bookings" -> "Mis Reservas"
-        currentRoute == "client_booking_detail/{bookingId}" -> "Detalle de Reserva"
-        currentRoute == "client_profile" -> "Perfil"
-        else -> "Bookify"
+        currentRoute == "client_bookings" -> tabBookings
+        currentRoute == "client_booking_detail/{bookingId}" -> stringResource(R.string.client_booking_detail_title)
+        currentRoute == "client_profile" -> tabProfile
+        else -> stringResource(R.string.client_home_title)
     }
 
     val showBackButton = currentRoute != "client_services" &&
@@ -70,8 +74,9 @@ fun ClientHomeScreen(
 
     LaunchedEffect(title, showBackButton, showBottomBar, selectedTab) {
         chromeState.title.value = title
+        chromeState.useAppHeader.value = true
         chromeState.showBackButton.value = showBackButton
-        chromeState.onBackClick.value = { innerNavController.popBackStack() }
+        chromeState.onBackClick.value = if (showBackButton) {{ innerNavController.popBackStack() }} else null
         chromeState.showBottomBar.value = showBottomBar
         chromeState.bottomBarItems.value = tabs.zip(icons).map { (label, icon) ->
             BottomBarConfig(label, icon, routes[tabs.indexOf(label)])

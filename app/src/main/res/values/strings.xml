@@ -3,6 +3,8 @@
 
     <!-- Common -->
     <string name="btn_back">Volver</string>
+    <string name="loading">Cargando…</string>
+    <string name="btn_back_to_login">Volver al Login</string>
     <string name="btn_go_to_login">Ir al Login</string>
     <string name="btn_login">Iniciar Sesión</string>
     <string name="btn_login_loading">Ingresando…</string>
@@ -20,6 +22,7 @@
     <string name="cd_add">Agregar</string>
 
     <!-- Login -->
+    <string name="login_title">Iniciar sesión</string>
     <string name="login_subtitle">Gestiona tus reservas</string>
     <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="login_no_account">¿No tienes cuenta? Registrarse</string>
@@ -32,7 +35,7 @@
 
     <!-- Password recovery -->
     <string name="recovery_title">Recuperar Contraseña</string>
-    <string name="recovery_forgot_title">¿Olvidaste tu contraseña?</string>
+    <string name="recovery_forgot_title">Recuperar Contraseña</string>
     <string name="recovery_forgot_subtitle">Ingresa tu email y te enviaremos un código para restablecerla.</string>
     <string name="recovery_send_code">Enviar código</string>
     <string name="recovery_send_code_loading">Enviando…</string>
@@ -57,6 +60,7 @@
 
     <!-- Register -->
     <string name="register_title">Registrarse</string>
+    <string name="register_subtitle">Crea tu cuenta para reservar servicios</string>
     <string name="label_name">Nombre</string>
     <string name="label_password_with_hint">Contraseña (mín. 6 caracteres)</string>
     <string name="btn_register">Registrarse</string>
@@ -65,4 +69,138 @@
     <!-- Register errors -->
     <string name="error_empty_name">El nombre es obligatorio</string>
     <string name="error_short_name">El nombre debe tener al menos 2 caracteres</string>
+
+    <!-- Booking status -->
+    <string name="booking_status_pending">Pendiente</string>
+    <string name="booking_status_confirmed">Confirmada</string>
+    <string name="booking_status_cancelled">Cancelada</string>
+
+    <!-- Admin bookings -->
+    <string name="admin_bookings_filter_all">Todas</string>
+    <string name="admin_bookings_filter_pending">Pendientes</string>
+    <string name="admin_bookings_filter_confirmed">Confirmadas</string>
+    <string name="admin_bookings_filter_cancelled">Canceladas</string>
+    <string name="admin_bookings_empty_title">Sin reservas</string>
+    <string name="admin_bookings_empty_message">No hay reservas para este filtro</string>
+    <string name="admin_bookings_default_service">Servicio</string>
+
+    <!-- Admin home -->
+    <string name="admin_home_title">Bookify Admin</string>
+    <string name="admin_tab_services">Servicios</string>
+    <string name="admin_tab_bookings">Reservas</string>
+    <string name="admin_tab_profile">Perfil</string>
+    <string name="admin_service_form_new_title">Nuevo Servicio</string>
+    <string name="admin_service_form_edit_title">Editar Servicio</string>
+    <string name="admin_map_picker_title">Seleccionar ubicación</string>
+
+    <!-- Admin service form -->
+    <string name="service_form_label_name">Nombre</string>
+    <string name="service_form_label_description">Descripción</string>
+    <string name="service_form_label_duration">Duración (minutos)</string>
+    <string name="service_form_label_capacity">Capacidad</string>
+    <string name="service_form_label_price">Precio (MXN)</string>
+    <string name="service_form_label_opening_time">Hora apertura (HH:mm)</string>
+    <string name="service_form_label_closing_time">Hora cierre (HH:mm)</string>
+    <string name="service_form_label_address">Dirección del negocio</string>
+    <string name="service_form_label_latitude">Latitud</string>
+    <string name="service_form_label_longitude">Longitud</string>
+    <string name="service_form_cd_decrease">Reducir</string>
+    <string name="service_form_cd_increase">Aumentar</string>
+    <string name="service_form_btn_map">Seleccionar en mapa</string>
+    <string name="service_form_btn_current_location">Usar mi ubicación actual</string>
+    <string name="service_form_selected_location">Ubicación seleccionada</string>
+    <string name="service_form_btn_save">Guardar servicio</string>
+    <string name="service_form_btn_saving">Guardando…</string>
+    <string name="service_form_time_picker_title">Seleccionar hora</string>
+    <string name="service_form_time_picker_hour">Hora</string>
+    <string name="service_form_time_picker_minute">Minuto</string>
+    <string name="service_form_time_picker_cd_hour_less">Hora menos</string>
+    <string name="service_form_time_picker_cd_hour_more">Hora más</string>
+    <string name="service_form_time_picker_cd_minute_less">Minuto menos</string>
+    <string name="service_form_time_picker_cd_minute_more">Minuto más</string>
+    <string name="service_form_time_picker_confirm">OK</string>
+    <string name="service_form_time_picker_cancel">Cancelar</string>
+
+    <!-- Admin service list -->
+    <string name="admin_service_list_empty_title">Sin servicios</string>
+    <string name="admin_service_list_empty_message">No hay servicios registrados</string>
+    <string name="admin_service_list_delete_title">Eliminar servicio</string>
+    <string name="admin_service_list_delete_message">¿Estás seguro de que deseas eliminar \"%s\"?</string>
+    <string name="admin_service_list_delete_confirm">Eliminar</string>
+    <string name="admin_service_list_delete_cancel">Cancelar</string>
+    <string name="admin_service_list_cd_delete">Eliminar</string>
+
+    <!-- Client home -->
+    <string name="client_home_title">Bookify</string>
+    <string name="client_tab_services">Servicios</string>
+    <string name="client_tab_bookings">Mis Reservas</string>
+    <string name="client_tab_profile">Perfil</string>
+    <string name="client_service_detail_title">Detalle</string>
+    <string name="client_availability_title">Disponibilidad</string>
+    <string name="client_create_booking_title">Confirmar Reserva</string>
+    <string name="client_booking_detail_title">Detalle de Reserva</string>
+
+    <!-- Client service list -->
+    <string name="client_service_list_error_title">Error</string>
+    <string name="client_service_list_error_message">Error al cargar servicios</string>
+    <string name="client_service_list_error_retry">Reintentar</string>
+    <string name="client_service_list_empty_title">Sin servicios</string>
+    <string name="client_service_list_empty_message">No hay servicios disponibles</string>
+
+    <!-- Client service detail -->
+    <string name="client_service_detail_btn_availability">Ver disponibilidad</string>
+    <string name="client_service_detail_duration">Duración</string>
+    <string name="client_service_detail_duration_value">%d min</string>
+    <string name="client_service_detail_capacity">Capacidad</string>
+    <string name="client_service_detail_capacity_value">%d personas</string>
+    <string name="client_service_detail_schedule">Horario</string>
+    <string name="client_service_detail_schedule_value">%1$s - %2$s</string>
+    <string name="client_service_detail_price">Precio</string>
+    <string name="client_service_detail_price_value">MXN %.2f</string>
+
+    <!-- Client availability -->
+    <string name="client_availability_date_label">Fecha: %s</string>
+    <string name="client_availability_picker_ok">OK</string>
+    <string name="client_availability_picker_cancel">Cancelar</string>
+    <string name="client_availability_error_title">Error</string>
+    <string name="client_availability_error_retry">Reintentar</string>
+    <string name="client_availability_empty_title">Sin disponibilidad</string>
+    <string name="client_availability_empty_message">No hay horarios para esta fecha</string>
+    <string name="client_availability_slot_available">Disponible</string>
+    <string name="client_availability_slot_occupied">Ocupado</string>
+
+    <!-- Client create booking -->
+    <string name="client_create_booking_start">Inicio: %s</string>
+    <string name="client_create_booking_end">Fin: %s</string>
+    <string name="client_create_booking_confirm">Confirmar Reserva</string>
+    <string name="client_create_booking_confirming">Confirmando…</string>
+    <string name="client_create_booking_success_title">Reserva Creada</string>
+    <string name="client_create_booking_success_message">Por favor revise su correo %s para confirmar la cita.</string>
+    <string name="client_create_booking_success_ok">Aceptar</string>
+
+    <!-- Client booking list -->
+    <string name="client_booking_list_empty_title">Sin reservas</string>
+    <string name="client_booking_list_empty_message">No tienes reservas para este filtro</string>
+    <string name="client_booking_list_default_service">Servicio</string>
+
+    <!-- Client booking detail -->
+    <string name="client_booking_detail_status_label">Estado: %s</string>
+    <string name="client_booking_detail_start">Inicio</string>
+    <string name="client_booking_detail_end">Fin</string>
+    <string name="client_booking_detail_btn_calendar">Agregar al calendario</string>
+    <string name="client_booking_detail_btn_cancel">Cancelar Reserva</string>
+
+    <!-- Client profile -->
+    <string name="client_profile_role">Rol: %s</string>
+    <string name="client_profile_theme_system">Seguir sistema</string>
+    <string name="client_profile_theme_light">Claro</string>
+    <string name="client_profile_theme_dark">Oscuro</string>
+    <string name="client_profile_btn_logout">Cerrar Sesión</string>
+
+    <!-- Common labels -->
+    <string name="label_duration">Duración</string>
+    <string name="label_capacity">Capacidad</string>
+    <string name="label_schedule">Horario</string>
+    <string name="label_price">Precio</string>
+    <string name="label_status">Estado</string>
 </resources>

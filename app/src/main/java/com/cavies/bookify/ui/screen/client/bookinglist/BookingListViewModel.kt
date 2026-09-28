@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cavies.bookify.core.domain.usecase.GetBookingsUseCase
 import com.cavies.bookify.core.domain.usecase.GetServiceNamesUseCase
+import com.cavies.bookify.ui.component.BookingFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,25 +21,22 @@ class BookingListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(BookingListUiState())
     val uiState: StateFlow<BookingListUiState> = _uiState
 
-    private var currentFilter: String? = null
+    private var currentFilter: BookingFilter = BookingFilter.ALL
 
     init {
         loadBookings()
         loadServiceNames()
     }
 
-    fun setFilter(status: String?) {
-        currentFilter = status
+    fun setFilter(filter: BookingFilter) {
+        currentFilter = filter
         loadBookings()
     }
 
     fun loadBookings() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            getBookingsUseCase(page = 0, status = currentFilter)
-                .onSuccess { paginated ->
-                    _uiState.update { it.copy(bookings = paginated.content, isLoading = false) }
-                }
+            fetchBookings()
             _uiState.update { it.copy(isLoading = false) }
         }
     }
@@ -46,12 +44,16 @@ class BookingListViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true) }
-            getBookingsUseCase(page = 0, status = currentFilter)
-                .onSuccess { paginated ->
-                    _uiState.update { it.copy(bookings = paginated.content, isRefreshing = false) }
-                }
+            fetchBookings()
             _uiState.update { it.copy(isRefreshing = false) }
         }
+    }
+
+    private suspend fun fetchBookings() {
+        getBookingsUseCase(page = 0, status = currentFilter.status)
+            .onSuccess { paginated ->
+                _uiState.update { it.copy(bookings = paginated.content) }
+            }
     }
 
     private fun loadServiceNames() {

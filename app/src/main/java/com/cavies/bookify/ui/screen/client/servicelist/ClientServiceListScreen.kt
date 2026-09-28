@@ -19,10 +19,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.snapshotFlow
+import com.cavies.bookify.R
 import com.cavies.bookify.ui.component.EmptyStateView
+import com.cavies.bookify.ui.component.LoadingOverlay
 import com.cavies.bookify.ui.component.ServiceCard
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,54 +46,57 @@ fun ClientServiceListScreen(
         }
     }
 
-    PullToRefreshBox(
-        isRefreshing = uiState.isRefreshing,
-        onRefresh = { viewModel.refresh() }
-    ) {
-        when {
-            uiState.isLoading && uiState.services.isEmpty() -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    androidx.compose.material3.CircularProgressIndicator()
+    Box(Modifier.fillMaxSize()) {
+        PullToRefreshBox(
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = { viewModel.refresh() }
+        ) {
+            when {
+                uiState.isLoading && uiState.services.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        androidx.compose.material3.CircularProgressIndicator()
+                    }
                 }
-            }
-            uiState.error != null && uiState.services.isEmpty() -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    EmptyStateView(
-                        icon = Icons.Default.Error,
-                        title = "Error",
-                        message = uiState.error ?: "Error desconocido",
-                        actionLabel = "Reintentar",
-                        onAction = { viewModel.loadServices() }
-                    )
-                }
-            }
-            uiState.services.isEmpty() -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    EmptyStateView(
-                        icon = Icons.Default.EventBusy,
-                        title = "Sin servicios",
-                        message = "No hay servicios disponibles"
-                    )
-                }
-            }
-            else -> {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize().padding(16.dp)
-                ) {
-                    items(uiState.services) { service ->
-                        ServiceCard(
-                            service = service,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                                .clickable {
-                                    navController.navigate("client_service_detail/${service.id}")
-                                }
+                uiState.error != null && uiState.services.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        EmptyStateView(
+                            icon = Icons.Default.Error,
+                            title = stringResource(R.string.client_service_list_error_title),
+                            message = uiState.error ?: stringResource(R.string.client_service_list_error_message),
+                            actionLabel = stringResource(R.string.client_service_list_error_retry),
+                            onAction = { viewModel.loadServices() }
                         )
+                    }
+                }
+                uiState.services.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        EmptyStateView(
+                            icon = Icons.Default.EventBusy,
+                            title = stringResource(R.string.client_service_list_empty_title),
+                            message = stringResource(R.string.client_service_list_empty_message)
+                        )
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize().padding(16.dp)
+                    ) {
+                        items(uiState.services) { service ->
+                            ServiceCard(
+                                service = service,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                                    .clickable {
+                                        navController.navigate("client_service_detail/${service.id}")
+                                    }
+                            )
+                        }
                     }
                 }
             }
         }
+        LoadingOverlay(isLoading = uiState.isLoading && uiState.services.isEmpty())
     }
 }

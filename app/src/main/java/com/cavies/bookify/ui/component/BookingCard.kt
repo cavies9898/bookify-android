@@ -15,7 +15,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.cavies.bookify.R
 import com.cavies.bookify.core.domain.model.Booking
 import com.cavies.bookify.core.domain.model.BookingStatus
 import com.cavies.bookify.core.domain.util.DateUtils
@@ -57,9 +59,9 @@ fun BookingCard(
                 BookingStatus.PENDING -> YellowBadgeBg
             }
             val badgeText = when (booking.status) {
-                BookingStatus.CONFIRMED -> "Confirmada"
-                BookingStatus.CANCELLED -> "Cancelada"
-                BookingStatus.PENDING -> "Pendiente"
+                BookingStatus.CONFIRMED -> stringResource(R.string.booking_status_confirmed)
+                BookingStatus.CANCELLED -> stringResource(R.string.booking_status_cancelled)
+                BookingStatus.PENDING -> stringResource(R.string.booking_status_pending)
             }
             Box(
                 modifier = Modifier

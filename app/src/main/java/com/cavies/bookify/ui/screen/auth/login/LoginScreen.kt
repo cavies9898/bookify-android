@@ -2,6 +2,7 @@ package com.cavies.bookify.ui.screen.auth.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -9,8 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -19,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
@@ -49,6 +51,7 @@ import com.cavies.bookify.R
 import com.cavies.bookify.core.domain.model.UserRole
 import com.cavies.bookify.core.domain.usecase.LoginUseCase
 import com.cavies.bookify.ui.component.ActionCardButton
+import com.cavies.bookify.ui.component.LoadingOverlay
 
 @Composable
 fun LoginScreen(
@@ -150,43 +153,46 @@ private fun LoginContent(
     onLogin: () -> Unit,
     onForgotPassword: () -> Unit,
     onRegister: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .windowInsetsPadding(WindowInsets.systemBars)
-            .imePadding()
-            .padding(horizontal = 32.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
-        LoginHeader()
-        Spacer(modifier = Modifier.height(24.dp))
-        EmailField(email, onEmailChange, emailError)
-        Spacer(modifier = Modifier.height(16.dp))
-        PasswordField(password, onPasswordChange, passwordError, passwordVisible, onPasswordVisibilityToggle, onLogin)
-        ServerError(serverError)
-        Spacer(modifier = Modifier.height(24.dp))
-        LoginButton(isLoading, onLogin)
-        Spacer(modifier = Modifier.height(16.dp))
-        ForgotPasswordButton(onForgotPassword)
-        RegisterButton(onRegister)
+        Box(Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .imePadding()
+                    .padding(horizontal = 32.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                LoginHeader()
+                Spacer(modifier = Modifier.height(24.dp))
+                EmailField(email, onEmailChange, emailError)
+                Spacer(modifier = Modifier.height(16.dp))
+                PasswordField(password, onPasswordChange, passwordError, passwordVisible, onPasswordVisibilityToggle, onLogin)
+                ServerError(serverError)
+                Spacer(modifier = Modifier.height(24.dp))
+                LoginButton(isLoading, onLogin)
+                Spacer(modifier = Modifier.height(16.dp))
+                ForgotPasswordButton(onForgotPassword)
+                RegisterButton(onRegister)
+            }
+            LoadingOverlay(isLoading = isLoading)
+        }
     }
-}
 
 @Composable
 private fun LoginHeader() {
     Icon(
-        imageVector = Icons.Default.CalendarMonth,
+        imageVector = Icons.Default.CalendarToday,
         contentDescription = null,
         modifier = Modifier.height(48.dp),
         tint = MaterialTheme.colorScheme.primary
     )
     Spacer(modifier = Modifier.height(16.dp))
     Text(
-        text = stringResource(R.string.app_name),
+        text = stringResource(R.string.login_title),
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.primary
     )

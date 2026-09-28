@@ -5,25 +5,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -31,6 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.cavies.bookify.R
 import com.cavies.bookify.core.domain.repository.AuthRepository
+import com.cavies.bookify.ui.component.AppHeader
 import com.cavies.bookify.ui.screen.admin.home.AdminHomeScreen
 import com.cavies.bookify.ui.screen.auth.login.LoginScreen
 import com.cavies.bookify.ui.screen.auth.passwordrecovery.PasswordRecoveryScreen
@@ -63,7 +65,6 @@ class MainViewModel @Inject constructor(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookifyNavHost(
     viewModel: MainViewModel = hiltViewModel()
@@ -71,23 +72,30 @@ fun BookifyNavHost(
     val navController = rememberNavController()
     val startDestination by viewModel.startDestination.collectAsState()
     val chromeState = rememberAppChromeState()
+    val view = LocalView.current
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val useHeader = chromeState.useAppHeader.value
+
+    SideEffect {
+        val window = (view.context as android.app.Activity).window
+        if (useHeader) {
+            window.statusBarColor = primaryColor.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+        } else {
+            window.statusBarColor = backgroundColor.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+        }
+    }
 
     startDestination?.let { dest ->
         Scaffold(
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
-                if (chromeState.showBottomBar.value || chromeState.title.value != stringResource(R.string.app_name)) {
-                    TopAppBar(
-                        title = { Text(chromeState.title.value) },
-                        navigationIcon = {
-                            if (chromeState.showBackButton.value) {
-                                IconButton(onClick = {
-                                    chromeState.onBackClick.value?.invoke()
-                                }) {
-                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back))
-                                }
-                            }
-                        }
+                if (chromeState.useAppHeader.value) {
+                    AppHeader(
+                        title = chromeState.title.value,
+                        onBack = chromeState.onBackClick.value
                     )
                 }
             },
@@ -127,6 +135,14 @@ fun BookifyNavHost(
                 modifier = Modifier.padding(padding)
             ) {
                 composable(Routes.LOGIN) {
+                    LaunchedEffect(Unit) {
+                        chromeState.title.value = "Bookify"
+                        chromeState.useAppHeader.value = false
+                        chromeState.showBackButton.value = false
+                        chromeState.onBackClick.value = null
+                        chromeState.showBottomBar.value = false
+                        chromeState.showFab.value = false
+                    }
                     LoginScreen(
                         onNavigateToRegister = { navController.navigate(Routes.REGISTER) },
                         onNavigateToForgotPassword = { navController.navigate(Routes.FORGOT_PASSWORD) },
@@ -144,12 +160,19 @@ fun BookifyNavHost(
                 }
 
                 composable(Routes.REGISTER) {
-                    RegisterScreen(
-                        onNavigateBack = {
+                    LaunchedEffect(Unit) {
+                        chromeState.title.value = "Registrarse"
+                        chromeState.useAppHeader.value = false
+                        chromeState.showBackButton.value = true
+                        chromeState.onBackClick.value = {
                             navController.navigate(Routes.LOGIN) {
                                 popUpTo(Routes.REGISTER) { inclusive = true }
                             }
-                        },
+                        }
+                        chromeState.showBottomBar.value = false
+                        chromeState.showFab.value = false
+                    }
+                    RegisterScreen(
                         onNavigateToClient = {
                             navController.navigate(Routes.CLIENT_TABS) {
                                 popUpTo(0) { inclusive = true }
@@ -159,12 +182,19 @@ fun BookifyNavHost(
                 }
 
                 composable(Routes.FORGOT_PASSWORD) {
-                    PasswordRecoveryScreen(
-                        onNavigateBack = {
+                    LaunchedEffect(Unit) {
+                        chromeState.title.value = "Recuperar Contraseña"
+                        chromeState.useAppHeader.value = false
+                        chromeState.showBackButton.value = true
+                        chromeState.onBackClick.value = {
                             navController.navigate(Routes.LOGIN) {
                                 popUpTo(Routes.FORGOT_PASSWORD) { inclusive = true }
                             }
-                        },
+                        }
+                        chromeState.showBottomBar.value = false
+                        chromeState.showFab.value = false
+                    }
+                    PasswordRecoveryScreen(
                         onNavigateToLogin = {
                             navController.navigate(Routes.LOGIN) {
                                 popUpTo(0) { inclusive = true }
@@ -178,9 +208,16 @@ fun BookifyNavHost(
                     arguments = listOf(navArgument("email") { type = NavType.StringType })
                 ) { backStackEntry ->
                     val email = backStackEntry.arguments?.getString("email") ?: ""
+                    LaunchedEffect(Unit) {
+                        chromeState.title.value = "Restablecer Contraseña"
+                        chromeState.useAppHeader.value = false
+                        chromeState.showBackButton.value = true
+                        chromeState.onBackClick.value = { navController.popBackStack() }
+                        chromeState.showBottomBar.value = false
+                        chromeState.showFab.value = false
+                    }
                     ResetPasswordScreen(
                         email = email,
-                        onNavigateBack = { navController.popBackStack() },
                         onResetSuccess = {
                             navController.navigate(Routes.LOGIN) {
                                 popUpTo(0) { inclusive = true }
