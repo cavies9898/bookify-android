@@ -1,19 +1,22 @@
 package com.cavies.bookify.ui.screen.auth.passwordrecovery
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -22,7 +25,6 @@ import androidx.compose.material.icons.filled.Pin
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,10 +52,8 @@ import com.cavies.bookify.core.domain.usecase.ForgotPasswordUseCase
 import com.cavies.bookify.core.domain.usecase.ResetPasswordUseCase
 import com.cavies.bookify.ui.component.ActionCardButton
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PasswordRecoveryScreen(
-    onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
     viewModel: PasswordRecoveryViewModel = hiltViewModel()
 ) {
@@ -81,9 +81,9 @@ fun PasswordRecoveryScreen(
             .padding(horizontal = 32.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Header(onNavigateBack)
-
+        verticalArrangement = Arrangement.Center,
+    )  {
+        Spacer(modifier = Modifier.height(16.dp))
         when (uiState.step) {
             1 -> StepSendCode(
                 emailInput = emailInput,
@@ -187,20 +187,6 @@ private fun mapConfirmPasswordError(error: ResetPasswordUseCase.ValidationError?
 }
 
 @Composable
-private fun Header(onNavigateBack: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onNavigateBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back))
-        }
-        Text(stringResource(R.string.recovery_title), style = MaterialTheme.typography.titleLarge)
-    }
-    Spacer(modifier = Modifier.height(16.dp))
-}
-
-@Composable
 private fun StepSendCode(
     emailInput: String,
     onEmailChange: (String) -> Unit,
@@ -219,7 +205,7 @@ private fun StepSendCode(
     Text(
         text = stringResource(R.string.recovery_forgot_title),
         style = MaterialTheme.typography.headlineMedium,
-        color = MaterialTheme.colorScheme.onSurface
+        color = MaterialTheme.colorScheme.primary
     )
     Spacer(modifier = Modifier.height(8.dp))
     Text(
@@ -294,7 +280,7 @@ private fun StepResetPassword(
     Text(
         text = stringResource(R.string.recovery_reset_title),
         style = MaterialTheme.typography.headlineMedium,
-        color = MaterialTheme.colorScheme.onSurface
+        color = MaterialTheme.colorScheme.primary
     )
     Spacer(modifier = Modifier.height(8.dp))
     Text(

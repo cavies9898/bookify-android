@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
@@ -155,7 +156,7 @@ private fun LoginContent(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .windowInsetsPadding(WindowInsets.systemBars)
+            .windowInsetsPadding(WindowInsets.navigationBars)
             .imePadding()
             .padding(horizontal = 32.dp)
             .verticalScroll(rememberScrollState()),
@@ -179,14 +180,14 @@ private fun LoginContent(
 @Composable
 private fun LoginHeader() {
     Icon(
-        imageVector = Icons.Default.CalendarMonth,
+        imageVector = Icons.Default.CalendarToday,
         contentDescription = null,
         modifier = Modifier.height(48.dp),
         tint = MaterialTheme.colorScheme.primary
     )
     Spacer(modifier = Modifier.height(16.dp))
     Text(
-        text = stringResource(R.string.app_name),
+        text = stringResource(R.string.login_title),
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.primary
     )

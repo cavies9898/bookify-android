@@ -66,6 +66,7 @@ fun AdminHomeScreen(
 
     LaunchedEffect(title, showBackButton, showBottomBar, showFab, selectedTab) {
         chromeState.title.value = title
+        chromeState.useAppHeader.value = true
         chromeState.showBackButton.value = showBackButton
         chromeState.onBackClick.value = { innerNavController.popBackStack() }
         chromeState.showBottomBar.value = showBottomBar

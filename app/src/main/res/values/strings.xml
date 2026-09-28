@@ -3,6 +3,7 @@
 
     <!-- Common -->
     <string name="btn_back">Volver</string>
+    <string name="btn_back_to_login">Volver al Login</string>
     <string name="btn_go_to_login">Ir al Login</string>
     <string name="btn_login">Iniciar Sesión</string>
     <string name="btn_login_loading">Ingresando…</string>
@@ -20,6 +21,7 @@
     <string name="cd_add">Agregar</string>
 
     <!-- Login -->
+    <string name="login_title">Iniciar sesión</string>
     <string name="login_subtitle">Gestiona tus reservas</string>
     <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="login_no_account">¿No tienes cuenta? Registrarse</string>
@@ -32,7 +34,7 @@
 
     <!-- Password recovery -->
     <string name="recovery_title">Recuperar Contraseña</string>
-    <string name="recovery_forgot_title">¿Olvidaste tu contraseña?</string>
+    <string name="recovery_forgot_title">Recuperar Contraseña</string>
     <string name="recovery_forgot_subtitle">Ingresa tu email y te enviaremos un código para restablecerla.</string>
     <string name="recovery_send_code">Enviar código</string>
     <string name="recovery_send_code_loading">Enviando…</string>
@@ -57,6 +59,7 @@
 
     <!-- Register -->
     <string name="register_title">Registrarse</string>
+    <string name="register_subtitle">Crea tu cuenta para reservar servicios</string>
     <string name="label_name">Nombre</string>
     <string name="label_password_with_hint">Contraseña (mín. 6 caracteres)</string>
     <string name="btn_register">Registrarse</string>

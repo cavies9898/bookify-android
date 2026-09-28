@@ -70,6 +70,7 @@ fun ClientHomeScreen(
 
     LaunchedEffect(title, showBackButton, showBottomBar, selectedTab) {
         chromeState.title.value = title
+        chromeState.useAppHeader.value = true
         chromeState.showBackButton.value = showBackButton
         chromeState.onBackClick.value = { innerNavController.popBackStack() }
         chromeState.showBottomBar.value = showBottomBar
