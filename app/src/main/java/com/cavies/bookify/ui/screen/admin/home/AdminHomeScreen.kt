@@ -1,14 +1,11 @@
 package com.cavies.bookify.ui.screen.admin.home
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -17,13 +14,14 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.cavies.bookify.R
 import com.cavies.bookify.navigation.AppChromeState
 import com.cavies.bookify.navigation.BottomBarConfig
 import com.cavies.bookify.ui.screen.admin.bookings.AdminBookingsScreen
@@ -40,7 +38,10 @@ fun AdminHomeScreen(
     val innerNavController = rememberNavController()
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    val tabs = listOf("Servicios", "Reservas", "Perfil")
+    val tabServices = stringResource(R.string.admin_tab_services)
+    val tabBookings = stringResource(R.string.admin_tab_bookings)
+    val tabProfile = stringResource(R.string.admin_tab_profile)
+    val tabs = listOf(tabServices, tabBookings, tabProfile)
     val icons = listOf(Icons.Default.Build, Icons.Default.CalendarMonth, Icons.Default.Person)
     val routes = listOf("admin_services", "admin_bookings", "admin_profile")
 
@@ -48,27 +49,28 @@ fun AdminHomeScreen(
     val currentRoute = navBackStackEntry?.destination?.route
 
     val title = when {
-        currentRoute == "admin_services" -> "Servicios"
-        currentRoute == "admin_service_form" -> "Nuevo Servicio"
-        currentRoute?.startsWith("admin_service_form/") == true -> "Editar Servicio"
-        currentRoute == "admin_map_picker" -> "Seleccionar ubicación"
-        currentRoute == "admin_bookings" -> "Reservas"
-        currentRoute == "admin_profile" -> "Perfil"
-        else -> "Bookify Admin"
+        currentRoute == "admin_services" -> tabServices
+        currentRoute == "admin_service_form" -> stringResource(R.string.admin_service_form_new_title)
+        currentRoute?.startsWith("admin_service_form/") == true -> stringResource(R.string.admin_service_form_edit_title)
+        currentRoute == "admin_map_picker" -> stringResource(R.string.admin_map_picker_title)
+        currentRoute == "admin_bookings" -> tabBookings
+        currentRoute == "admin_profile" -> tabProfile
+        else -> stringResource(R.string.admin_home_title)
     }
 
     val showBackButton = currentRoute != "admin_services" &&
             currentRoute != "admin_bookings" &&
             currentRoute != "admin_profile"
 
+    val isMapPicker = currentRoute == "admin_map_picker"
     val showBottomBar = currentRoute in routes
     val showFab = currentRoute == "admin_services"
 
-    LaunchedEffect(title, showBackButton, showBottomBar, showFab, selectedTab) {
+    LaunchedEffect(title, showBackButton, showBottomBar, showFab, selectedTab, isMapPicker) {
         chromeState.title.value = title
-        chromeState.useAppHeader.value = true
+        chromeState.useAppHeader.value = !isMapPicker
         chromeState.showBackButton.value = showBackButton
-        chromeState.onBackClick.value = { innerNavController.popBackStack() }
+        chromeState.onBackClick.value = if (showBackButton) {{ innerNavController.popBackStack() }} else null
         chromeState.showBottomBar.value = showBottomBar
         chromeState.bottomBarItems.value = tabs.zip(icons).map { (label, icon) ->
             BottomBarConfig(label, icon, routes[tabs.indexOf(label)])

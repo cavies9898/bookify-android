@@ -1,6 +1,7 @@
 package com.cavies.bookify.ui.screen.auth.register
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -45,6 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.cavies.bookify.R
 import com.cavies.bookify.core.domain.usecase.RegisterUseCase
 import com.cavies.bookify.ui.component.ActionCardButton
+import com.cavies.bookify.ui.component.LoadingOverlay
 
 @Composable
 fun RegisterScreen(
@@ -154,48 +156,51 @@ private fun RegisterContent(
     isLoading: Boolean,
     onRegister: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .windowInsetsPadding(WindowInsets.navigationBars)
-            .imePadding()
-            .padding(horizontal = 32.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(R.string.register_title),
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = stringResource(R.string.register_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        NameField(name, onNameChange, nameError)
-        Spacer(modifier = Modifier.height(16.dp))
-        EmailField(email, onEmailChange, emailError)
-        Spacer(modifier = Modifier.height(16.dp))
-        PasswordField(password, onPasswordChange, passwordError, passwordVisible, onPasswordVisibilityToggle, onRegister)
-        ServerError(serverError)
-        Spacer(modifier = Modifier.height(24.dp))
+    Box(Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .imePadding()
+                .padding(horizontal = 32.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = stringResource(R.string.register_title),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.register_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            NameField(name, onNameChange, nameError)
+            Spacer(modifier = Modifier.height(16.dp))
+            EmailField(email, onEmailChange, emailError)
+            Spacer(modifier = Modifier.height(16.dp))
+            PasswordField(password, onPasswordChange, passwordError, passwordVisible, onPasswordVisibilityToggle, onRegister)
+            ServerError(serverError)
+            Spacer(modifier = Modifier.height(24.dp))
 
-        val isValidEmail = email.contains("@") && email.contains(".")
-        val isValidPassword = password.length >= 6
-        val isRegisterValid = name.length >= 2 && isValidEmail && isValidPassword
+            val isValidEmail = email.contains("@") && email.contains(".")
+            val isValidPassword = password.length >= 6
+            val isRegisterValid = name.length >= 2 && isValidEmail && isValidPassword
 
-        ActionCardButton(
-            icon = Icons.Default.PersonAdd,
-            label = if (isLoading) stringResource(R.string.btn_register_loading) else stringResource(R.string.btn_register),
-            onClick = onRegister,
-            enabled = !isLoading && isRegisterValid,
-            modifier = Modifier.fillMaxWidth()
-        )
+            ActionCardButton(
+                icon = Icons.Default.PersonAdd,
+                label = if (isLoading) stringResource(R.string.btn_register_loading) else stringResource(R.string.btn_register),
+                onClick = onRegister,
+                enabled = !isLoading && isRegisterValid,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        LoadingOverlay(isLoading = isLoading)
     }
 }
 

@@ -27,10 +27,7 @@ class AdminServiceListViewModel @Inject constructor(
     fun loadServices() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            getServicesUseCase(page = 0, size = 100)
-                .onSuccess { paginated ->
-                    _uiState.update { it.copy(services = paginated.content, isLoading = false) }
-                }
+            fetchServices()
             _uiState.update { it.copy(isLoading = false) }
         }
     }
@@ -40,5 +37,12 @@ class AdminServiceListViewModel @Inject constructor(
             deleteServiceUseCase(id)
                 .onSuccess { loadServices() }
         }
+    }
+
+    private suspend fun fetchServices() {
+        getServicesUseCase(page = 0, size = 100)
+            .onSuccess { paginated ->
+                _uiState.update { it.copy(services = paginated.content) }
+            }
     }
 }

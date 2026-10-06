@@ -2,6 +2,7 @@ package com.cavies.bookify.ui.screen.auth.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -50,6 +51,7 @@ import com.cavies.bookify.R
 import com.cavies.bookify.core.domain.model.UserRole
 import com.cavies.bookify.core.domain.usecase.LoginUseCase
 import com.cavies.bookify.ui.component.ActionCardButton
+import com.cavies.bookify.ui.component.LoadingOverlay
 
 @Composable
 fun LoginScreen(
@@ -151,31 +153,34 @@ private fun LoginContent(
     onLogin: () -> Unit,
     onForgotPassword: () -> Unit,
     onRegister: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .windowInsetsPadding(WindowInsets.navigationBars)
-            .imePadding()
-            .padding(horizontal = 32.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
-        LoginHeader()
-        Spacer(modifier = Modifier.height(24.dp))
-        EmailField(email, onEmailChange, emailError)
-        Spacer(modifier = Modifier.height(16.dp))
-        PasswordField(password, onPasswordChange, passwordError, passwordVisible, onPasswordVisibilityToggle, onLogin)
-        ServerError(serverError)
-        Spacer(modifier = Modifier.height(24.dp))
-        LoginButton(isLoading, onLogin)
-        Spacer(modifier = Modifier.height(16.dp))
-        ForgotPasswordButton(onForgotPassword)
-        RegisterButton(onRegister)
+        Box(Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .imePadding()
+                    .padding(horizontal = 32.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                LoginHeader()
+                Spacer(modifier = Modifier.height(24.dp))
+                EmailField(email, onEmailChange, emailError)
+                Spacer(modifier = Modifier.height(16.dp))
+                PasswordField(password, onPasswordChange, passwordError, passwordVisible, onPasswordVisibilityToggle, onLogin)
+                ServerError(serverError)
+                Spacer(modifier = Modifier.height(24.dp))
+                LoginButton(isLoading, onLogin)
+                Spacer(modifier = Modifier.height(16.dp))
+                ForgotPasswordButton(onForgotPassword)
+                RegisterButton(onRegister)
+            }
+            LoadingOverlay(isLoading = isLoading)
+        }
     }
-}
 
 @Composable
 private fun LoginHeader() {

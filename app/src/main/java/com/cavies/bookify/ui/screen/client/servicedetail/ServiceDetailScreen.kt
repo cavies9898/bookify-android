@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,9 +33,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cavies.bookify.R
 import com.cavies.bookify.ui.component.ActionCardButton
 import com.cavies.bookify.ui.component.LocationMapCard
 
@@ -60,86 +61,88 @@ fun ServiceDetailScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            Text(
+                text = svc.name,
+                style = MaterialTheme.typography.titleMedium
+            )
+            val description = svc.description
+            if (!description.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = svc.name,
-                    style = MaterialTheme.typography.titleMedium
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                val description = svc.description
-                if (!description.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ActionCardButton(
+                icon = Icons.Default.Schedule,
+                label = stringResource(R.string.client_service_detail_btn_availability),
+                onClick = {
+                    navController.navigate(
+                        "client_availability/${svc.id}/${svc.name}"
                     )
                 }
+            )
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-                ActionCardButton(
-                    icon = Icons.Default.Schedule,
-                    label = "Ver disponibilidad",
-                    onClick = {
-                        navController.navigate(
-                            "client_availability/${svc.id}/${svc.name}"
-                        )
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    DetailRow(
+                        icon = Icons.Default.Schedule,
+                        label = stringResource(R.string.client_service_detail_duration),
+                        value = stringResource(R.string.client_service_detail_duration_value, svc.durationMinutes)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    DetailRow(
+                        icon = Icons.Default.Groups,
+                        label = stringResource(R.string.client_service_detail_capacity),
+                        value = stringResource(R.string.client_service_detail_capacity_value, svc.capacity)
+                    )
+                    val openingTime = svc.openingTime
+                    val closingTime = svc.closingTime
+                    if (openingTime != null && closingTime != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+                        Spacer(modifier = Modifier.height(12.dp))
                         DetailRow(
                             icon = Icons.Default.Schedule,
-                            label = "Duración",
-                            value = "${svc.durationMinutes} min"
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
-                        Spacer(modifier = Modifier.height(12.dp))
-                        DetailRow(
-                            icon = Icons.Default.Groups,
-                            label = "Capacidad",
-                            value = "${svc.capacity} personas"
-                        )
-                        if (svc.openingTime != null && svc.closingTime != null) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
-                            Spacer(modifier = Modifier.height(12.dp))
-                            DetailRow(
-                                icon = Icons.Default.Schedule,
-                                label = "Horario",
-                                value = "${svc.openingTime} - ${svc.closingTime}"
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
-                        Spacer(modifier = Modifier.height(12.dp))
-                        DetailRow(
-                            icon = Icons.Default.AttachMoney,
-                            label = "Precio",
-                            value = "MXN ${"%.2f".format(svc.price)}"
+                            label = stringResource(R.string.client_service_detail_schedule),
+                            value = stringResource(R.string.client_service_detail_schedule_value, openingTime, closingTime)
                         )
                     }
-                }
-
-                val serviceLocation = svc.location
-                if (!serviceLocation.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    LocationMapCard(
-                        location = serviceLocation,
-                        latitude = svc.latitude,
-                        longitude = svc.longitude
+                    Spacer(modifier = Modifier.height(12.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    DetailRow(
+                        icon = Icons.Default.AttachMoney,
+                        label = stringResource(R.string.client_service_detail_price),
+                        value = stringResource(R.string.client_service_detail_price_value, svc.price)
                     )
                 }
             }
+
+            val serviceLocation = svc.location
+            if (!serviceLocation.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                LocationMapCard(
+                    location = serviceLocation,
+                    latitude = svc.latitude,
+                    longitude = svc.longitude
+                )
+            }
         }
+    }
 }
 
 @Composable

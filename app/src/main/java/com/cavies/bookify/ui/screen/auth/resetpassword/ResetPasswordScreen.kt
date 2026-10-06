@@ -1,6 +1,7 @@
 package com.cavies.bookify.ui.screen.auth.resetpassword
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -47,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.cavies.bookify.R
 import com.cavies.bookify.core.domain.usecase.ResetPasswordUseCase
 import com.cavies.bookify.ui.component.ActionCardButton
+import com.cavies.bookify.ui.component.LoadingOverlay
 
 @Composable
 fun ResetPasswordScreen(
@@ -69,6 +71,7 @@ fun ResetPasswordScreen(
     val passwordErrorMessage = mapPasswordError(uiState.passwordError)
     val confirmPasswordErrorMessage = mapConfirmPasswordError(uiState.confirmPasswordError)
 
+    Box(Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -118,6 +121,8 @@ fun ResetPasswordScreen(
                 onResetSuccess = onResetSuccess
             )
         }
+    }
+        LoadingOverlay(isLoading = uiState.isLoading)
     }
 }
 

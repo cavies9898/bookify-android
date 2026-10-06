@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,11 +41,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cavies.bookify.R
 import com.cavies.bookify.core.domain.util.DateUtils
 import com.cavies.bookify.ui.component.ActionCardButton
 import com.cavies.bookify.ui.component.EmptyStateView
+import com.cavies.bookify.ui.component.LoadingOverlay
 import java.time.Instant
 import java.time.ZoneId
 
@@ -66,139 +68,147 @@ fun AvailabilityScreen(
         viewModel.loadAvailability(serviceId, uiState.selectedDate)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        ActionCardButton(
-            icon = Icons.Default.Schedule,
-            label = "Fecha: ${DateUtils.toQueryString(uiState.selectedDate)}",
-            onClick = { showDatePicker = true }
-        )
+    Box(Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            ActionCardButton(
+                icon = Icons.Default.Schedule,
+                label = stringResource(R.string.client_availability_date_label, DateUtils.toQueryString(uiState.selectedDate)),
+                onClick = { showDatePicker = true }
+            )
 
-        if (showDatePicker) {
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            val date = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
-                            viewModel.loadAvailability(serviceId, date)
+            if (showDatePicker) {
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                val date = Instant.ofEpochMilli(millis)
+                                    .atZone(ZoneId.systemDefault())
+                                    .toLocalDate()
+                                viewModel.loadAvailability(serviceId, date)
+                            }
+                            showDatePicker = false
+                        }) { Text(stringResource(R.string.client_availability_picker_ok)) }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDatePicker = false }) {
+                            Text(stringResource(R.string.client_availability_picker_cancel))
                         }
-                        showDatePicker = false
-                    }) { Text("OK") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
-                }
-            ) {
-                DatePicker(state = datePickerState)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        when {
-            uiState.isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    }
                 ) {
-                    CircularProgressIndicator()
+                    DatePicker(state = datePickerState)
                 }
             }
-            uiState.error != null -> {
-                EmptyStateView(
-                    icon = Icons.Default.EventBusy,
-                    title = "Error",
-                    message = uiState.error ?: "Error desconocido",
-                    actionLabel = "Reintentar",
-                    onAction = { viewModel.loadAvailability(serviceId, uiState.selectedDate) }
-                )
-            }
-            uiState.slots.isEmpty() -> {
-                EmptyStateView(
-                    icon = Icons.Default.EventBusy,
-                    title = "Sin disponibilidad",
-                    message = "No hay horarios para esta fecha"
-                )
-            }
-            else -> {
-                LazyColumn {
-                    items(uiState.slots) { slot ->
-                        val gradient = if (slot.available) {
-                            Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color(0xFF2196F3),
-                                    Color(0xFF42A5F5),
-                                    Color(0xFF64B5F6)
-                                )
-                            )
-                        } else {
-                            Brush.horizontalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                    MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            )
-                        }
-                        val contentColor = if (slot.available) {
-                            Color.White
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                        }
 
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                                .clickable(enabled = slot.available) {
-                                    navController.navigate(
-                                        "client_create_booking/$serviceId/$serviceName/${slot.startAt}/${slot.endAt}"
+            Spacer(modifier = Modifier.height(16.dp))
+
+            when {
+                uiState.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                uiState.error != null -> {
+                    EmptyStateView(
+                        icon = Icons.Default.EventBusy,
+                        title = stringResource(R.string.client_availability_error_title),
+                        message = uiState.error ?: "",
+                        actionLabel = stringResource(R.string.client_availability_error_retry),
+                        onAction = { viewModel.loadAvailability(serviceId, uiState.selectedDate) }
+                    )
+                }
+                uiState.slots.isEmpty() -> {
+                    EmptyStateView(
+                        icon = Icons.Default.EventBusy,
+                        title = stringResource(R.string.client_availability_empty_title),
+                        message = stringResource(R.string.client_availability_empty_message)
+                    )
+                }
+                else -> {
+                    LazyColumn {
+                        items(uiState.slots) { slot ->
+                            val gradient = if (slot.available) {
+                                Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFF2196F3),
+                                        Color(0xFF42A5F5),
+                                        Color(0xFF64B5F6)
                                     )
-                                },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color.Transparent
-                            )
-                        ) {
-                            Row(
+                                )
+                            } else {
+                                Brush.horizontalGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.surfaceVariant,
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                )
+                            }
+                            val contentColor = if (slot.available) {
+                                Color.White
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            }
+
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(gradient)
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                    .padding(vertical = 4.dp)
+                                    .clickable(enabled = slot.available) {
+                                        navController.navigate(
+                                            "client_create_booking/$serviceId/$serviceName/${slot.startAt}/${slot.endAt}"
+                                        )
+                                    },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color.Transparent
+                                )
                             ) {
-                                Column {
-                                    Text(
-                                        text = DateUtils.formatDisplayRange(slot.startAt, slot.endAt),
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = contentColor
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Icon(
-                                        imageVector = if (slot.available) Icons.Default.CheckCircle else Icons.Default.Schedule,
-                                        contentDescription = null,
-                                        modifier = Modifier.height(16.dp),
-                                        tint = contentColor
-                                    )
-                                    Text(
-                                        text = if (slot.available) "Disponible" else "Ocupado",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = contentColor
-                                    )
-                                }
-                                if (slot.available) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                        contentDescription = null,
-                                        tint = contentColor,
-                                        modifier = Modifier.height(24.dp)
-                                    )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(gradient)
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = DateUtils.formatDisplayRange(slot.startAt, slot.endAt),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = contentColor
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Icon(
+                                            imageVector = if (slot.available) Icons.Default.CheckCircle else Icons.Default.Schedule,
+                                            contentDescription = null,
+                                            modifier = Modifier.height(16.dp),
+                                            tint = contentColor
+                                        )
+                                        Text(
+                                            text = if (slot.available) {
+                                                stringResource(R.string.client_availability_slot_available)
+                                            } else {
+                                                stringResource(R.string.client_availability_slot_occupied)
+                                            },
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = contentColor
+                                        )
+                                    }
+                                    if (slot.available) {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                            contentDescription = null,
+                                            tint = contentColor,
+                                            modifier = Modifier.height(24.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -206,5 +216,6 @@ fun AvailabilityScreen(
                 }
             }
         }
+        LoadingOverlay(isLoading = uiState.isLoading)
     }
 }

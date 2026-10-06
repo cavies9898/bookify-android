@@ -27,9 +27,9 @@ class ClientServiceListViewModel @Inject constructor(
     fun loadServices() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            getServicesUseCase(page = 0)
+            currentPage = 0
+            fetchServices(page = 0)
                 .onSuccess { paginated ->
-                    currentPage = 0
                     _uiState.update {
                         it.copy(
                             services = paginated.content,
@@ -41,7 +41,12 @@ class ClientServiceListViewModel @Inject constructor(
                 }
                 .onFailure { e ->
                     if (_uiState.value.services.isEmpty()) {
-                        _uiState.update { it.copy(isLoading = false, error = e.message ?: "Error al cargar servicios") }
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = e.message
+                            )
+                        }
                     }
                 }
             _uiState.update { it.copy(isLoading = false) }
@@ -51,9 +56,9 @@ class ClientServiceListViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true, error = null) }
-            getServicesUseCase(page = 0)
+            currentPage = 0
+            fetchServices(page = 0)
                 .onSuccess { paginated ->
-                    currentPage = 0
                     _uiState.update {
                         it.copy(
                             services = paginated.content,
@@ -65,7 +70,12 @@ class ClientServiceListViewModel @Inject constructor(
                 }
                 .onFailure { e ->
                     if (_uiState.value.services.isEmpty()) {
-                        _uiState.update { it.copy(isRefreshing = false, error = e.message ?: "Error al cargar servicios") }
+                        _uiState.update {
+                            it.copy(
+                                isRefreshing = false,
+                                error = e.message
+                            )
+                        }
                     }
                 }
             _uiState.update { it.copy(isRefreshing = false) }
@@ -78,7 +88,7 @@ class ClientServiceListViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val nextPage = currentPage + 1
-            getServicesUseCase(page = nextPage)
+            fetchServices(page = nextPage)
                 .onSuccess { paginated ->
                     currentPage = nextPage
                     _uiState.update {
@@ -92,4 +102,7 @@ class ClientServiceListViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = false) }
         }
     }
+
+    private suspend fun fetchServices(page: Int) =
+        getServicesUseCase(page = page)
 }

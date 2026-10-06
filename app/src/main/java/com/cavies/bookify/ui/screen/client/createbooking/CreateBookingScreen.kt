@@ -1,5 +1,6 @@
 package com.cavies.bookify.ui.screen.client.createbooking
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,9 +21,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cavies.bookify.R
 import com.cavies.bookify.core.domain.util.DateUtils
+import com.cavies.bookify.ui.component.LoadingOverlay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,8 +44,10 @@ fun CreateBookingScreen(
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { showSuccessDialog = false },
-            title = { Text("Reserva Creada") },
-            text = { Text("Por favor revise su correo ${uiState.userEmail} para confirmar la cita.") },
+            title = { Text(stringResource(R.string.client_create_booking_success_title)) },
+            text = {
+                Text(stringResource(R.string.client_create_booking_success_message, uiState.userEmail))
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -49,54 +55,63 @@ fun CreateBookingScreen(
                         navController.popBackStack("client_services", false)
                     }
                 ) {
-                    Text("Aceptar")
+                    Text(stringResource(R.string.client_create_booking_success_ok))
                 }
             }
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = serviceName,
-            style = MaterialTheme.typography.headlineSmall
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Inicio: ${DateUtils.formatDisplay(startAt)}",
-            style = MaterialTheme.typography.bodyLarge
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Fin: ${DateUtils.formatDisplay(endAt)}",
-            style = MaterialTheme.typography.bodyLarge
-        )
-
-        if (uiState.error != null) {
+    Box(Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = serviceName,
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = stringResource(R.string.client_create_booking_start, DateUtils.formatDisplay(startAt)),
+                style = MaterialTheme.typography.bodyLarge
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = uiState.error!!,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
+                text = stringResource(R.string.client_create_booking_end, DateUtils.formatDisplay(endAt)),
+                style = MaterialTheme.typography.bodyLarge
             )
-        }
 
-        Spacer(modifier = Modifier.weight(1f))
+            if (uiState.error != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = uiState.error!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
-        Button(
-            onClick = {
-                viewModel.createBooking(serviceId, startAt, endAt) {
-                    showSuccessDialog = true
-                }
-            },
-            enabled = !uiState.isLoading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(if (uiState.isLoading) "Confirmando..." else "Confirmar Reserva")
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
+                onClick = {
+                    viewModel.createBooking(serviceId, startAt, endAt) {
+                        showSuccessDialog = true
+                    }
+                },
+                enabled = !uiState.isLoading,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    if (uiState.isLoading) {
+                        stringResource(R.string.client_create_booking_confirming)
+                    } else {
+                        stringResource(R.string.client_create_booking_confirm)
+                    }
+                )
+            }
         }
+        LoadingOverlay(isLoading = uiState.isLoading)
     }
 }
